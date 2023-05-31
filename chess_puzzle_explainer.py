@@ -1,15 +1,18 @@
 import chess
+import chess.engine
 import chess.svg
 import pygame
-import random
 from cairosvg import svg2png
 
 def play_game(human_color = None):
     # Initialize pygame
     pygame.init()
 
+    # Initialize engine
+    engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
+
     # Set up the display
-    board_size = 400
+    board_size = 720
     screen = pygame.display.set_mode((board_size, board_size))
     clock = pygame.time.Clock()
 
@@ -18,12 +21,33 @@ def play_game(human_color = None):
     from_square = None
     move = chess.Move.null()
 
+    # Convert board.svg to board.png
+    drawing = chess.svg.board(
+        board,
+        orientation = human_color,
+        lastmove = move,
+        fill = {from_square: "#cc0000cc"},
+        size = board_size,
+        coordinates = False
+    )
+    f = open("board.svg", 'w')
+    f.write(drawing)
+    svg2png(url = "board.svg", write_to = "board.png")
+    
+    # Display board.png
+    board_image = pygame.image.load("board.png")
+    screen.blit(board_image, (0, 0))
+    pygame.display.flip()
+    
+    # Set framerate
+    clock.tick(60)
+
     # Game loop
     running = True
     while running:
         if board.turn != human_color:
-            # Make random CPU move
-            move = random.choice(list(board.legal_moves))
+            # Make Stockfish move
+            move = engine.play(board, chess.engine.Limit(time=1)).move
             board.push(move)
         
         for event in pygame.event.get():
@@ -79,6 +103,9 @@ def play_game(human_color = None):
         # Set framerate
         clock.tick(60)
 
+    # Quit engine
+    engine.quit()
+
     # Quit pygame
     pygame.quit()
 
@@ -96,7 +123,7 @@ def play_puzzle(board, uci_moves):
     pygame.init()
 
     # Set up the display
-    board_size = 400
+    board_size = 720
     screen = pygame.display.set_mode((board_size, board_size))
     clock = pygame.time.Clock()
 
@@ -105,6 +132,27 @@ def play_puzzle(board, uci_moves):
     human_color = board.turn
     move = chess.Move.null()
     move_num = 0
+
+    # Convert board.svg to board.png
+    drawing = chess.svg.board(
+        board,
+        orientation = human_color,
+        lastmove = move,
+        fill = {from_square: "#cc0000cc"},
+        size = board_size,
+        coordinates = False
+    )
+    f = open("board.svg", 'w')
+    f.write(drawing)
+    svg2png(url = "board.svg", write_to = "board.png")
+    
+    # Display board.png
+    board_image = pygame.image.load("board.png")
+    screen.blit(board_image, (0, 0))
+    pygame.display.flip()
+    
+    # Set framerate
+    clock.tick(60)
 
     # Puzzle loop
     running = True
@@ -192,12 +240,12 @@ puzzles = [
     ("8/8/R6P/5p2/p7/4k1P1/r7/4K3 b",["a2a1"]), # 1170
     ("r3r2Q/2pb1k2/1p1p2p1/p1nP1pq1/2P1P3/2N5/PP6/1K1R1B1R w",["h1h7"]), # 1397
     ("3R4/5p2/4kNp1/4P2p/4KP2/6P1/7r/4n3 w",["d8e8"]), # 1503
-    ("r1r5/2R1R2p/2p2k2/2p2Pp1/6P1/p5P1/P4P2/6P1 w",["e7e6"]), # 1763
+    ("r1r5/2R1R2p/2p2k2/2p2Pp1/6P1/p5P1/P4P2/6K1 w",["e7e6"]), # 1763
     ("4k3/4r3/p6p/P2Q2p1/3N1p2/5K1P/1R4P1/4q3 b",["e1g3"]), # 1997
     # Pin
     ("r3k2r/p1pq1pb1/1p1p3p/3P2pP/4P3/8/P3BPP1/1R1QK2R w",["e2b5","d7b5","b1b5"]), # 896
     ("8/3r4/6kP/3r4/5P1Q/8/6PK/8 b",["d5h5","h4h5","g6h5"]), # 1006
-    ("rn5k/pp4pp/2pp4/q4r2/2P5/2N1Q2P/PP3PP1/R3K2R b",["f5e5","e1g1","e5e3"]), # 1039
+    ("rn5k/pp4pp/2pp4/q4r2/2P5/2N1Q2P/PP3PP1/R3K2R b K",["f5e5","e1g1","e5e3"]), # 1039
     ("8/pp3rkp/2p1rb2/2P5/5PP1/1P1RB2P/P5B1/6K1 b",["e6e3","d3e3","f6d4"]), # 1210
     ("4r1k1/pp3p2/2pp1qp1/8/3QPP1p/bP4P1/P3N2P/3R1BK1 b",["a3c5","d4c5","d6c5"]), # 1222
     ("2r1r1k1/pp2p2p/3qbbp1/2pp1p2/3P1P1P/PBP2QP1/1PKN4/3RR3 w",["e1e6","d6e6","b3d5","e6d5","f3d5"]), # 1525
@@ -205,7 +253,8 @@ puzzles = [
 ]
 
 if __name__ == "__main__":
-    play_game()
+    play_game(chess.WHITE)
+
     # for puzzle in puzzles:
     #     board = chess.Board(puzzle[0])
     #     uci_moves = puzzle[1]
