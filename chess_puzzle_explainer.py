@@ -87,6 +87,7 @@ def play_game(human_color = None):
             board,
             orientation = chess.WHITE if human_color is None else human_color,
             lastmove = move,
+            check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
             size = board_size,
             coordinates = False
@@ -201,6 +202,7 @@ def play_puzzle(board, uci_moves):
             board,
             orientation = human_color,
             lastmove = move,
+            check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
             size = board_size,
             coordinates = False
@@ -253,9 +255,9 @@ puzzles = [
 ]
 
 if __name__ == "__main__":
-    play_game(chess.WHITE)
+    # play_game(chess.WHITE)
 
-    # for puzzle in puzzles:
-    #     board = chess.Board(puzzle[0])
-    #     uci_moves = puzzle[1]
-    #     play_puzzle(board, uci_moves)
+    for puzzle in puzzles:
+        board = chess.Board(puzzle[0])
+        uci_moves = puzzle[1]
+        play_puzzle(board, uci_moves)
