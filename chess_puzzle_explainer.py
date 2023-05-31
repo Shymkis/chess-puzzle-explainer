@@ -4,7 +4,7 @@ import pygame
 import random
 from cairosvg import svg2png
 
-def play_game():
+def play_game(human_color = None):
     # Initialize pygame
     pygame.init()
 
@@ -21,7 +21,7 @@ def play_game():
     # Game loop
     running = True
     while running:
-        if board.turn == chess.BLACK:
+        if board.turn != human_color:
             # Make random CPU move
             move = random.choice(list(board.legal_moves))
             board.push(move)
@@ -30,14 +30,14 @@ def play_game():
             if event.type == pygame.QUIT:
                 running = False
             
-            if event.type == pygame.MOUSEBUTTONDOWN and board.turn == chess.WHITE:
+            if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
                 # Get the mouse position
                 x, y = pygame.mouse.get_pos()
                 
                 # Convert the position to chess coordinates
                 file = x // (board_size // 8)
                 rank = 7 - y // (board_size // 8)
-                square = chess.square(file, rank)
+                square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
                 
                 # Determine move
                 if from_square is None and board.color_at(square) == board.turn:
@@ -61,6 +61,7 @@ def play_game():
         # Convert board.svg to board.png
         drawing = chess.svg.board(
             board,
+            orientation = chess.WHITE if human_color is None else human_color,
             lastmove = move,
             fill = {from_square: "#cc0000cc"},
             size = board_size,
@@ -204,7 +205,8 @@ puzzles = [
 ]
 
 if __name__ == "__main__":
-    for puzzle in puzzles:
-        board = chess.Board(puzzle[0])
-        uci_moves = puzzle[1]
-        play_puzzle(board, uci_moves)
+    play_game()
+    # for puzzle in puzzles:
+    #     board = chess.Board(puzzle[0])
+    #     uci_moves = puzzle[1]
+    #     play_puzzle(board, uci_moves)
