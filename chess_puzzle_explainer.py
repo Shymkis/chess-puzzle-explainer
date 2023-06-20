@@ -49,7 +49,7 @@ def play_game(human_color = None):
     while running:
         if board.turn != human_color:
             # Make Stockfish move
-            move = engine.play(board, chess.engine.Limit(time=1)).move
+            move = engine.play(board, chess.engine.Limit(time = .0001)).move
             board.push(move)
         
         for event in pygame.event.get():
@@ -135,9 +135,10 @@ def play_puzzle(board, uci_moves, theme):
     human_color = board.turn
     move = chess.Move.null()
     move_num = 0
-    start_time = time()
+    start_time = proactive_start = time()
     proactive_timeout = 10
     display_theme = False
+    num_mistakes = 0
 
     # Convert board.svg to board.png
     drawing = chess.svg.board(
@@ -168,12 +169,12 @@ def play_puzzle(board, uci_moves, theme):
             move = chess.Move.from_uci(uci_moves[move_num])
             board.push(move)
             move_num += 1
-            start_time = time()
+            proactive_start = time()
         
-        if time() - start_time > proactive_timeout and not display_theme:
+        if time() - proactive_start > proactive_timeout and not display_theme:
             print(theme)
             display_theme = True
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -205,6 +206,7 @@ def play_puzzle(board, uci_moves, theme):
                             move_num += 1
                         else:
                             print("Wrong move. Try again.")
+                            num_mistakes += 1
                             if not display_theme:
                                 print(theme)
                                 display_theme = True
@@ -240,6 +242,9 @@ def play_puzzle(board, uci_moves, theme):
     # Quit pygame
     pygame.quit()
 
+    total_time = time() - start_time
+    return (total_time, num_mistakes, display_theme)
+
 puzzles = [
     ("8/r1k2pp1/B7/PP6/8/5KP1/8/8 w",                               ["b5b6","c7b8","b6a7"],                 "Fork",         682),
     ("r3kb1B/ppp1n2p/2n3p1/1B1p2q1/8/1P2PP1b/P1PPQP1K/RN2R3 b",     ["g5g2"],                               "Mate in 1",    802),
@@ -267,10 +272,15 @@ puzzles = [
 if __name__ == "__main__":
     # play_game(chess.WHITE)
 
+    t_tot = m_tot = x_tot = r_tot = 0
+    n = 5
+
     shuffle(puzzles)
-    for puzzle in puzzles:
+    for puzzle in puzzles[1:n]:
         board = chess.Board(puzzle[0])
         uci_moves = puzzle[1]
         theme = puzzle[2]
-        rating = puzzle[3]
-        play_puzzle(board, uci_moves, theme)
+        r = puzzle[3]
+        t, m, x = play_puzzle(board, uci_moves, theme)
+        t_tot += t; m_tot += m; x_tot += x; r_tot += r
+    print(t_tot / n, m_tot / n, x_tot / n, r_tot / n)
