@@ -1,8 +1,8 @@
 import chess
 import chess.engine
 import chess.svg
+import pandas as pd
 import pygame
-from random import shuffle
 from cairosvg import svg2png
 from time import time
 
@@ -245,42 +245,20 @@ def play_puzzle(board, uci_moves, theme):
     total_time = time() - start_time
     return (total_time, num_mistakes, display_theme)
 
-puzzles = [
-    ("8/r1k2pp1/B7/PP6/8/5KP1/8/8 w",                               ["b5b6","c7b8","b6a7"],                 "Fork",         682),
-    ("r3kb1B/ppp1n2p/2n3p1/1B1p2q1/8/1P2PP1b/P1PPQP1K/RN2R3 b",     ["g5g2"],                               "Mate in 1",    802),
-    ("8/2r3pp/4kp2/1RP1p3/1P2b1P1/4N3/5P1P/5K2 b",                  ["e4d3","f1e1","d3b5"],                 "Fork",         809),
-    ("8/4k3/B5p1/2p1Pp1p/2P2P1P/3K4/2n5/8 b",                       ["c2b4","d3e3","b4a6"],                 "Fork",         817),
-    ("k3r3/p5Q1/8/2B1n1p1/2P5/5P2/Pq1r2PP/4RK2 w",                  ["g7a7"],                               "Mate in 1",    843),
-    ("r3k2r/p1pq1pb1/1p1p3p/3P2pP/4P3/8/P3BPP1/1R1QK2R w",          ["e2b5","d7b5","b1b5"],                 "Pin",          896),
-    ("8/3r4/6kP/3r4/5P1Q/8/6PK/8 b",                                ["d5h5","h4h5","g6h5"],                 "Pin",          1006),
-    ("rn5k/pp4pp/2pp4/q4r2/2P5/2N1Q2P/PP3PP1/R3K2R b K",            ["f5e5","e1g1","e5e3"],                 "Pin",          1039),
-    ("5rk1/p4p2/2pr4/3Pq1p1/2K1P3/2P1QPR1/2P5/8 w",                 ["g3g5","e5g5","e3g5"],                 "Fork",         1066),
-    ("8/p2pkpp1/8/4P2p/P3BP2/1Pr1n1P1/1R5P/6K1 b",                  ["c3c1","g1f2","e3d1","f2e2","d1b2"],   "Fork",         1076),
-    ("8/8/R6P/5p2/p7/4k1P1/r7/4K3 b",                               ["a2a1"],                               "Mate in 1",    1170),
-    ("8/pp3rkp/2p1rb2/2P5/5PP1/1P1RB2P/P5B1/6K1 b",                 ["e6e3","d3e3","f6d4"],                 "Pin",          1210),
-    ("4r1k1/pp3p2/2pp1qp1/8/3QPP1p/bP4P1/P3N2P/3R1BK1 b",           ["a3c5","d4c5","d6c5"],                 "Pin",          1222),
-    ("r3r2Q/2pb1k2/1p1p2p1/p1nP1pq1/2P1P3/2N5/PP6/1K1R1B1R w",      ["h1h7"],                               "Mate in 1",    1397),
-    ("2kr3r/pppq4/4bp2/2Pp1n2/3B3p/1P5P/P2QB1P1/R3RKN1 b",          ["f5g3","f1f2","g3e4","f2e3","e4d2"],   "Fork",         1462),
-    ("3R4/5p2/4kNp1/4P2p/4KP2/6P1/7r/4n3 w",                        ["d8e8"],                               "Mate in 1",    1503),
-    ("2r1r1k1/pp2p2p/3qbbp1/2pp1p2/3P1P1P/PBP2QP1/1PKN4/3RR3 w",    ["e1e6","d6e6","b3d5","e6d5","f3d5"],   "Pin",          1525),
-    ("r1r5/2R1R2p/2p2k2/2p2Pp1/6P1/p5P1/P4P2/6K1 w",                ["e7e6"],                               "Mate in 1",    1763),
-    ("3q2k1/5p1p/p1Bpr1p1/2n1p1P1/1pP4Q/PPn5/3RPP1P/2R3K1 b",       ["c5b3","a3b4","b3c1"],                 "Fork",         1902),
-    ("4r2k/3b3r/p2B2R1/1p1B4/2p5/8/P1p3PP/6K1 w",                   ["d6e5","h7g7","g6h6"],                 "Pin",          1916),
-    ("4k3/4r3/p6p/P2Q2p1/3N1p2/5K1P/1R4P1/4q3 b",                   ["e1g3"],                               "Mate in 1",    1997),
-]
+# Obtain puzzles
+puzzles = pd.read_excel("puzzles.xlsx")
+puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
 
 if __name__ == "__main__":
-    # play_game(chess.WHITE)
-
     t_tot = m_tot = x_tot = r_tot = 0
-    n = 5
+    n = len(puzzles)
 
-    shuffle(puzzles)
-    for puzzle in puzzles[1:n]:
-        board = chess.Board(puzzle[0])
-        uci_moves = puzzle[1]
-        theme = puzzle[2]
-        r = puzzle[3]
+    puzzles = puzzles.sample(n).reset_index(drop=True)
+    for _, puzzle in puzzles.iterrows():
+        board = chess.Board(puzzle["Board"])
+        uci_moves = puzzle["Moves"]
+        theme = puzzle["Theme"]
+        r = puzzle["Rating"]
         t, m, x = play_puzzle(board, uci_moves, theme)
         t_tot += t; m_tot += m; x_tot += x; r_tot += r
-    print(t_tot / n, m_tot / n, x_tot / n, r_tot / n)
+    print("Avg:", t_tot / n, "seconds,", m_tot / n, "mistakes,", x_tot / n, "explanations,", r_tot / n, "rating")
