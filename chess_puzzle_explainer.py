@@ -14,35 +14,16 @@ def play_game(human_color = None):
     engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
 
     # Set up the display
-    board_size = 720
-    screen = pygame.display.set_mode((board_size, board_size))
+    screen_size = 720
+    margin_size = 27
+    board_size = screen_size - 2*margin_size
+    screen = pygame.display.set_mode((screen_size, screen_size))
     clock = pygame.time.Clock()
 
     # Initialize variables
     board = chess.Board()
     from_square = None
     move = chess.Move.null()
-
-    # Convert board.svg to board.png
-    drawing = chess.svg.board(
-        board,
-        orientation = human_color,
-        lastmove = move,
-        fill = {from_square: "#cc0000cc"},
-        size = board_size,
-        coordinates = False
-    )
-    f = open("board.svg", 'w')
-    f.write(drawing)
-    svg2png(url = "board.svg", write_to = "board.png")
-    
-    # Display board.png
-    board_image = pygame.image.load("board.png")
-    screen.blit(board_image, (0, 0))
-    pygame.display.flip()
-    
-    # Set framerate
-    clock.tick(60)
 
     # Game loop
     running = True
@@ -61,13 +42,17 @@ def play_game(human_color = None):
                 x, y = pygame.mouse.get_pos()
                 
                 # Convert the position to chess coordinates
-                file = x // (board_size // 8)
-                rank = 7 - y // (board_size // 8)
-                square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                square = None
+                if x > margin_size and x < margin_size + board_size and y > margin_size and y < margin_size + board_size:
+                    file = int((x - margin_size) // (board_size / 8))
+                    rank = int(7 - (y - margin_size) // (board_size / 8))
+                    square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
                 
                 # Determine move
-                if from_square is None and board.color_at(square) == board.turn:
-                    from_square = square
+                if square is None:
+                    from_square = None
+                elif from_square is None:
+                    from_square = square if board.color_at(square) == board.turn else None
                 elif from_square == square:
                     from_square = None
                 else:
@@ -91,8 +76,7 @@ def play_game(human_color = None):
             lastmove = move,
             check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
-            size = board_size,
-            coordinates = False
+            size = screen_size
         )
         f = open("board.svg", 'w')
         f.write(drawing)
@@ -126,8 +110,10 @@ def play_puzzle(board, uci_moves, theme):
     pygame.init()
 
     # Set up the display
-    board_size = 720
-    screen = pygame.display.set_mode((board_size, board_size))
+    screen_size = 720
+    margin_size = 27
+    board_size = screen_size - 2*margin_size
+    screen = pygame.display.set_mode((screen_size, screen_size))
     clock = pygame.time.Clock()
 
     # Initialize variables
@@ -139,27 +125,6 @@ def play_puzzle(board, uci_moves, theme):
     proactive_timeout = 10
     display_theme = False
     num_mistakes = 0
-
-    # Convert board.svg to board.png
-    drawing = chess.svg.board(
-        board,
-        orientation = human_color,
-        lastmove = move,
-        fill = {from_square: "#cc0000cc"},
-        size = board_size,
-        coordinates = False
-    )
-    f = open("board.svg", 'w')
-    f.write(drawing)
-    svg2png(url = "board.svg", write_to = "board.png")
-    
-    # Display board.png
-    board_image = pygame.image.load("board.png")
-    screen.blit(board_image, (0, 0))
-    pygame.display.flip()
-    
-    # Set framerate
-    clock.tick(60)
 
     # Puzzle loop
     running = True
@@ -178,19 +143,23 @@ def play_puzzle(board, uci_moves, theme):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            
+
             if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
                 # Get the mouse position
                 x, y = pygame.mouse.get_pos()
                 
                 # Convert the position to chess coordinates
-                file = x // (board_size // 8)
-                rank = 7 - y // (board_size // 8)
-                square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                square = None
+                if x > margin_size and x < margin_size + board_size and y > margin_size and y < margin_size + board_size:
+                    file = int((x - margin_size) // (board_size / 8))
+                    rank = int(7 - (y - margin_size) // (board_size / 8))
+                    square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
                 
                 # Determine move
-                if from_square is None and board.color_at(square) == board.turn:
-                    from_square = square
+                if square is None:
+                    from_square = None
+                elif from_square is None:
+                    from_square = square if board.color_at(square) == board.turn else None
                 elif from_square == square:
                     from_square = None
                 else:
@@ -219,8 +188,7 @@ def play_puzzle(board, uci_moves, theme):
             lastmove = move,
             check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
-            size = board_size,
-            coordinates = False
+            size = screen_size
         )
         f = open("board.svg", 'w')
         f.write(drawing)
@@ -253,7 +221,7 @@ if __name__ == "__main__":
     t_tot = m_tot = x_tot = r_tot = 0
     n = len(puzzles)
 
-    puzzles = puzzles.sample(n).reset_index(drop=True)
+    # puzzles = puzzles.sample(n).reset_index(drop=True)
     for _, puzzle in puzzles.iterrows():
         board = chess.Board(puzzle["Board"])
         uci_moves = puzzle["Moves"]
