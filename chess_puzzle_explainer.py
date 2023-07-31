@@ -1,8 +1,10 @@
 import chess
 import chess.engine
 import chess.svg
+import io
 import pandas as pd
 import pygame
+import pygame.freetype
 from cairosvg import svg2png
 from time import time
 
@@ -14,13 +16,18 @@ def play_game(human_color = None):
     engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
 
     # Set up the display
-    screen_size = 720
-    margin_size = 27
-    board_size = screen_size - 2*margin_size
-    screen = pygame.display.set_mode((screen_size, screen_size))
+    screen_ratio = 16/9
+    screen_width = 1280.0
+    screen_height = screen_width/screen_ratio
+    screen = pygame.display.set_mode((screen_width, screen_height))
     clock = pygame.time.Clock()
 
-    # Initialize variables
+    margin_ratio = 3/80
+    board_size = screen_height
+    margin_size = board_size*margin_ratio
+    grid_size = board_size - 2*margin_size
+
+    # Initialize game variables
     board = chess.Board()
     from_square = None
     move = chess.Move.null()
@@ -43,9 +50,9 @@ def play_game(human_color = None):
                 
                 # Convert the position to chess coordinates
                 square = None
-                if x > margin_size and x < margin_size + board_size and y > margin_size and y < margin_size + board_size:
-                    file = int((x - margin_size) // (board_size / 8))
-                    rank = int(7 - (y - margin_size) // (board_size / 8))
+                if x > margin_size and x < margin_size + grid_size and y > margin_size and y < margin_size + grid_size:
+                    file = int((x - margin_size) // (grid_size / 8))
+                    rank = int(7 - (y - margin_size) // (grid_size / 8))
                     square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
                 
                 # Determine move
@@ -76,7 +83,7 @@ def play_game(human_color = None):
             lastmove = move,
             check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
-            size = screen_size
+            size = board_size
         )
         f = open("board.svg", 'w')
         f.write(drawing)
@@ -110,13 +117,25 @@ def play_puzzle(board, uci_moves, theme):
     pygame.init()
 
     # Set up the display
-    screen_size = 720
-    margin_size = 27
-    board_size = screen_size - 2*margin_size
-    screen = pygame.display.set_mode((screen_size, screen_size))
+    screen_width = 1080
+    screen_ratio = 16/9
+    screen_height = screen_width/screen_ratio
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_icon(pygame.image.load("icon.svg"))
+    pygame.display.set_caption("Chess Puzzle")
     clock = pygame.time.Clock()
+    # Chessboard dimensions
+    margin_ratio = 3/80
+    board_size = screen_height
+    margin_size = board_size*margin_ratio
+    grid_size = board_size - 2*margin_size
+    # Chat dimensions
+    chatbox_width = screen_width - board_size
+    chat_height = screen_height - 2*margin_size
+    chat_width = chatbox_width - 2*margin_size
+    GAME_FONT = pygame.freetype.SysFont("Arial", 24)
 
-    # Initialize variables
+    # Initialize puzzle variables
     from_square = None
     human_color = board.turn
     move = chess.Move.null()
@@ -150,9 +169,9 @@ def play_puzzle(board, uci_moves, theme):
                 
                 # Convert the position to chess coordinates
                 square = None
-                if x > margin_size and x < margin_size + board_size and y > margin_size and y < margin_size + board_size:
-                    file = int((x - margin_size) // (board_size / 8))
-                    rank = int(7 - (y - margin_size) // (board_size / 8))
+                if x > margin_size and x < margin_size + grid_size and y > margin_size and y < margin_size + grid_size:
+                    file = int((x - margin_size) // (grid_size / 8))
+                    rank = int(7 - (y - margin_size) // (grid_size / 8))
                     square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
                 
                 # Determine move
@@ -188,15 +207,21 @@ def play_puzzle(board, uci_moves, theme):
             lastmove = move,
             check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
-            size = screen_size
+            size = board_size
         )
         f = open("board.svg", 'w')
         f.write(drawing)
+        f.close()
         svg2png(url = "board.svg", write_to = "board.png")
-        
+
         # Display board.png
         board_image = pygame.image.load("board.png")
-        screen.blit(board_image, (0, 0))
+        screen.blit(board_image, (0, 0), pygame.Rect(0, 0, board_size, board_size))
+        # Display chat
+        screen.fill((200, 200, 200), pygame.Rect(board_size, 0, chatbox_width, screen_height))
+        rect1 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size), "You are playing as White", (0, 0, 0))
+        rect2 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size + rect1.height), "Blah", (0, 0, 0))
+        rect3 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size + rect1.height + rect2.height), "Blah again", (0, 0, 0))
         pygame.display.flip()
         
         # Set framerate
