@@ -8,250 +8,256 @@ import pygame.freetype
 from cairosvg import svg2png
 from time import time
 
-def play_game(human_color = None):
-    # Initialize pygame
-    pygame.init()
+class Chess_Chat_GUI:
+    def __init__(self, screen_width = 1080):
+        # Screen
+        self.screen_width = screen_width
+        self.screen_ratio = 16/9
+        self.screen_height = self.screen_width/self.screen_ratio
+        # Chess
+        self.board_size = self.screen_height
+        self.margin_ratio = 3/80
+        self.margin_size = self.board_size*self.margin_ratio
+        self.grid_size = self.board_size - 2*self.margin_size
+        # Chat
+        self.chatbox_width = self.screen_width - self.board_size
+        self.chat_width = self.chatbox_width - 2*self.margin_size
+        self.chat_height = self.screen_height - 2*self.margin_size
+        self.BLACK = (0,0,0)
+        self.chats = []
 
-    # Initialize engine
-    engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
+    def init(self):
+        # Initialize pygame
+        pygame.init()
+        pygame.display.set_icon(pygame.image.load("icon.svg"))
+        pygame.display.set_caption("Chess Puzzle")
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.clock = pygame.time.Clock()
+        self.font = pygame.freetype.SysFont("Arial", 24)
+        self.engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
 
-    # Set up the display
-    screen_ratio = 16/9
-    screen_width = 1280.0
-    screen_height = screen_width/screen_ratio
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    clock = pygame.time.Clock()
+    def quit(self):
+        self.engine.quit()
+        pygame.quit()
 
-    margin_ratio = 3/80
-    board_size = screen_height
-    margin_size = board_size*margin_ratio
-    grid_size = board_size - 2*margin_size
+    def display_chat(self, pad = 2):
+        pos = (self.board_size + self.margin_size, self.margin_size)
+        for chat in self.chats:
+            rect = self.font.render_to(self.screen, pos, chat, self.BLACK)
+            pos = (pos[0], pos[1] + rect.height + pad)
 
-    # Initialize game variables
-    board = chess.Board()
-    from_square = None
-    move = chess.Move.null()
+    def play_game(self, human_color = None):
+        # Initialize game variables
+        board = chess.Board()
+        from_square = None
+        move = chess.Move.null()
+        if human_color is None:
+            self.chats.append("CPU vs. CPU game")
+        else:
+            self.chats.append("You are playing as " + ("White" if human_color == chess.WHITE else "Black"))
 
-    # Game loop
-    running = True
-    while running:
-        if board.turn != human_color:
-            # Make Stockfish move
-            move = engine.play(board, chess.engine.Limit(time = .0001)).move
-            board.push(move)
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
-                # Get the mouse position
-                x, y = pygame.mouse.get_pos()
+        # Game loop
+        running = True
+        while running:
+            # Make computer move
+            if board.turn != human_color:
+                move = self.engine.play(board, chess.engine.Limit(time = .5)).move
+                board.push(move)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
                 
-                # Convert the position to chess coordinates
-                square = None
-                if x > margin_size and x < margin_size + grid_size and y > margin_size and y < margin_size + grid_size:
-                    file = int((x - margin_size) // (grid_size / 8))
-                    rank = int(7 - (y - margin_size) // (grid_size / 8))
-                    square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
-                
-                # Determine move
-                if square is None:
-                    from_square = None
-                elif from_square is None:
-                    from_square = square if board.color_at(square) == board.turn else None
-                elif from_square == square:
-                    from_square = None
-                else:
-                    # Make the move if it's legal
-                    try:
-                        move = board.find_move(from_square, square)
-                    except:
-                        from_square = square if board.color_at(square) == board.turn else None
-                    else:
-                        board.push(move)
+                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
+                    # Get the mouse position
+                    x, y = pygame.mouse.get_pos()
+                    
+                    # Convert the position to chess coordinates
+                    square = None
+                    if x > self.margin_size and x < self.margin_size + self.grid_size and \
+                        y > self.margin_size and y < self.margin_size + self.grid_size:
+                        file = int((x - self.margin_size) // (self.grid_size / 8))
+                        rank = int(7 - (y - self.margin_size) // (self.grid_size / 8))
+                        square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                    
+                    # Determine move
+                    if square is None:
                         from_square = None
-        
-        # End game
-        if board.is_game_over():
-            running = False
-        
-        # Convert board.svg to board.png
-        drawing = chess.svg.board(
-            board,
-            orientation = chess.WHITE if human_color is None else human_color,
-            lastmove = move,
-            check = board.king(board.turn) if board.is_check() else None,
-            fill = {from_square: "#cc0000cc"},
-            size = board_size
-        )
-        f = open("board.svg", 'w')
-        f.write(drawing)
-        svg2png(url = "board.svg", write_to = "board.png")
-        
-        # Display board.png
-        board_image = pygame.image.load("board.png")
-        screen.blit(board_image, (0, 0))
-        pygame.display.flip()
-        
-        # Set framerate
-        clock.tick(60)
-
-    # Quit engine
-    engine.quit()
-
-    # Quit pygame
-    pygame.quit()
-
-    # Game over
-    result = board.result()
-    if result == "1-0":
-        print("White wins!")
-    elif result == "0-1":
-        print("Black wins!")
-    else:
-        print("It's a draw!")
-
-def play_puzzle(board, uci_moves, theme):
-    # Initialize pygame
-    pygame.init()
-
-    # Set up the display
-    screen_width = 1080
-    screen_ratio = 16/9
-    screen_height = screen_width/screen_ratio
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_icon(pygame.image.load("icon.svg"))
-    pygame.display.set_caption("Chess Puzzle")
-    clock = pygame.time.Clock()
-    # Chessboard dimensions
-    margin_ratio = 3/80
-    board_size = screen_height
-    margin_size = board_size*margin_ratio
-    grid_size = board_size - 2*margin_size
-    # Chat dimensions
-    chatbox_width = screen_width - board_size
-    chat_height = screen_height - 2*margin_size
-    chat_width = chatbox_width - 2*margin_size
-    GAME_FONT = pygame.freetype.SysFont("Arial", 24)
-
-    # Initialize puzzle variables
-    from_square = None
-    human_color = board.turn
-    move = chess.Move.null()
-    move_num = 0
-    start_time = proactive_start = time()
-    proactive_timeout = 10
-    display_theme = False
-    num_mistakes = 0
-
-    # Puzzle loop
-    running = True
-    while running:
-        if board.turn != human_color:
-            # Make CPU move
-            move = chess.Move.from_uci(uci_moves[move_num])
-            board.push(move)
-            move_num += 1
-            proactive_start = time()
-        
-        if time() - proactive_start > proactive_timeout and not display_theme:
-            print(theme)
-            display_theme = True
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-            if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
-                # Get the mouse position
-                x, y = pygame.mouse.get_pos()
-                
-                # Convert the position to chess coordinates
-                square = None
-                if x > margin_size and x < margin_size + grid_size and y > margin_size and y < margin_size + grid_size:
-                    file = int((x - margin_size) // (grid_size / 8))
-                    rank = int(7 - (y - margin_size) // (grid_size / 8))
-                    square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
-                
-                # Determine move
-                if square is None:
-                    from_square = None
-                elif from_square is None:
-                    from_square = square if board.color_at(square) == board.turn else None
-                elif from_square == square:
-                    from_square = None
-                else:
-                    # Make the move if it's legal
-                    try:
-                        human_move = board.find_move(from_square, square)
-                    except:
+                    elif from_square is None:
                         from_square = square if board.color_at(square) == board.turn else None
+                    elif from_square == square:
+                        from_square = None
                     else:
-                        if human_move.uci() == uci_moves[move_num]:
-                            move = human_move
-                            board.push(move)
-                            move_num += 1
+                        # Make the move if it's legal
+                        try:
+                            move = board.find_move(from_square, square)
+                        except:
+                            from_square = square if board.color_at(square) == board.turn else None
                         else:
-                            print("Wrong move. Try again.")
-                            num_mistakes += 1
-                            if not display_theme:
-                                print(theme)
-                                display_theme = True
+                            board.push(move)
+                            from_square = None
+            
+            # End game
+            if board.is_game_over():
+                running = False
+                result = board.result()
+                if result == "1-0":
+                    self.chats.append("White wins!")
+                elif result == "0-1":
+                    self.chats.append("Black wins!")
+                else:
+                    self.chats.append("It's a draw!")
+
+            # Convert board.svg to board.png
+            drawing = chess.svg.board(
+                board,
+                orientation = chess.WHITE if human_color is None else human_color,
+                lastmove = move,
+                check = board.king(board.turn) if board.is_check() else None,
+                fill = {from_square: "#cc0000cc"},
+                size = self.board_size
+            )
+            f = open("board.svg", 'w')
+            f.write(drawing)
+            svg2png(url = "board.svg", write_to = "board.png")
+            # Display board.png
+            board_image = pygame.image.load("board.png")
+            self.screen.blit(board_image, (0, 0))
+            # Display chat
+            self.screen.fill((200, 200, 200), pygame.Rect(self.board_size, 0, self.chatbox_width, self.screen_height))
+            self.display_chat()
+            pygame.display.flip()
+            
+            # Set framerate
+            self.clock.tick(60)
+
+    def play_puzzle(self, board: chess.Board, uci_moves, theme):
+        # Initialize puzzle variables
+        from_square = None
+        human_color = board.turn
+        self.chats.append("You are playing as " + ("White" if human_color == chess.WHITE else "Black"))
+        move = chess.Move.null()
+        move_num = 0
+        start_time = proactive_start = time()
+        proactive_timeout = 10
+        display_theme = False
+        num_mistakes = 0
+        q = False
+
+        # Puzzle loop
+        running = True
+        while running:
+            # Make computer move
+            if board.turn != human_color:
+                move = chess.Move.from_uci(uci_moves[move_num])
+                board.push(move)
+                move_num += 1
+                proactive_start = time()
+
+            # Check if human is stuck
+            if time() - proactive_start > proactive_timeout and not display_theme:
+                self.chats.append("Look for a " + theme)
+                display_theme = True
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    q = True
+
+                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
+                    # Get the mouse position
+                    x, y = pygame.mouse.get_pos()
+                    
+                    # Convert the position to chess coordinates
+                    square = None
+                    if x > self.margin_size and x < self.margin_size + self.grid_size and \
+                        y > self.margin_size and y < self.margin_size + self.grid_size:
+                        file = int((x - self.margin_size) // (self.grid_size / 8))
+                        rank = int(7 - (y - self.margin_size) // (self.grid_size / 8))
+                        square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                    
+                    # Determine move
+                    if square is None:
                         from_square = None
-        
-        # Convert board.svg to board.png
-        drawing = chess.svg.board(
-            board,
-            orientation = human_color,
-            lastmove = move,
-            check = board.king(board.turn) if board.is_check() else None,
-            fill = {from_square: "#cc0000cc"},
-            size = board_size
-        )
-        f = open("board.svg", 'w')
-        f.write(drawing)
-        f.close()
-        svg2png(url = "board.svg", write_to = "board.png")
+                    elif from_square is None:
+                        from_square = square if board.color_at(square) == board.turn else None
+                    elif from_square == square:
+                        from_square = None
+                    else:
+                        # Make the move if it's legal
+                        try:
+                            human_move = board.find_move(from_square, square)
+                        except:
+                            from_square = square if board.color_at(square) == board.turn else None
+                        else:
+                            if human_move.uci() == uci_moves[move_num]:
+                                move = human_move
+                                board.push(move)
+                                move_num += 1
+                            else:
+                                self.chats.append("Wrong move. Try again.")
+                                num_mistakes += 1
+                                if not display_theme:
+                                    self.chats.append("Look for a " + theme)
+                                    display_theme = True
+                            from_square = None
 
-        # Display board.png
-        board_image = pygame.image.load("board.png")
-        screen.blit(board_image, (0, 0), pygame.Rect(0, 0, board_size, board_size))
-        # Display chat
-        screen.fill((200, 200, 200), pygame.Rect(board_size, 0, chatbox_width, screen_height))
-        rect1 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size), "You are playing as White", (0, 0, 0))
-        rect2 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size + rect1.height), "Blah", (0, 0, 0))
-        rect3 = GAME_FONT.render_to(screen, (board_size + margin_size, margin_size + rect1.height + rect2.height), "Blah again", (0, 0, 0))
-        pygame.display.flip()
-        
-        # Set framerate
-        clock.tick(60)
+            # End puzzle
+            if move_num == len(uci_moves):
+                self.chats.append("Puzzle solved!")
+                running = False
 
-        # End puzzle
-        if move_num == len(uci_moves):
-            print("Puzzle solved!")
-            running = False
+            # Convert board.svg to board.png
+            drawing = chess.svg.board(
+                board,
+                orientation = human_color,
+                lastmove = move,
+                check = board.king(board.turn) if board.is_check() else None,
+                fill = {from_square: "#cc0000cc"},
+                size = self.board_size
+            )
+            f = open("board.svg", 'w')
+            f.write(drawing)
+            f.close()
+            svg2png(url = "board.svg", write_to = "board.png")
+            # Display board.png
+            board_image = pygame.image.load("board.png")
+            self.screen.blit(board_image, (0, 0), pygame.Rect(0, 0, self.board_size, self.board_size))
+            # Display chat
+            self.screen.fill((200, 200, 200), pygame.Rect(self.board_size, 0, self.chatbox_width, self.screen_height))
+            self.display_chat()
+            pygame.display.flip()
 
-    # Quit pygame
-    pygame.quit()
+            # Set framerate
+            self.clock.tick(60)
 
-    total_time = time() - start_time
-    return (total_time, num_mistakes, display_theme)
+        total_time = time() - start_time
+        return (total_time, num_mistakes, display_theme, q)
 
-# Obtain puzzles
-puzzles = pd.read_excel("puzzles.xlsx")
-puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
+    def play_puzzles(self, puzzles):
+        t_tot = m_tot = x_tot = r_tot = 0
+        n = len(puzzles)
+
+        puzzles = puzzles.sample(n).reset_index(drop=True)
+        for i, puzzle in puzzles.iterrows():
+            self.chats.append("Puzzle #" + str(i + 1))
+            board = chess.Board(puzzle["Board"])
+            uci_moves = puzzle["Moves"]
+            theme = puzzle["Theme"]
+            r = puzzle["Rating"]
+            t, m, x, q = self.play_puzzle(board, uci_moves, theme)
+            t_tot += t; m_tot += m; x_tot += x; r_tot += r
+            if q:
+                break
+        print("Avg:", t_tot / n, "seconds,", m_tot / n, "mistakes,", x_tot / n, "explanations,", r_tot / n, "rating")
 
 if __name__ == "__main__":
-    t_tot = m_tot = x_tot = r_tot = 0
-    n = len(puzzles)
-
-    # puzzles = puzzles.sample(n).reset_index(drop=True)
-    for _, puzzle in puzzles.iterrows():
-        board = chess.Board(puzzle["Board"])
-        uci_moves = puzzle["Moves"]
-        theme = puzzle["Theme"]
-        r = puzzle["Rating"]
-        t, m, x = play_puzzle(board, uci_moves, theme)
-        t_tot += t; m_tot += m; x_tot += x; r_tot += r
-    print("Avg:", t_tot / n, "seconds,", m_tot / n, "mistakes,", x_tot / n, "explanations,", r_tot / n, "rating")
+    # Obtain puzzles
+    puzzles = pd.read_excel("puzzles.xlsx")
+    puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
+    
+    # Run puzzles in GUI
+    gui = Chess_Chat_GUI()
+    gui.init()
+    gui.play_puzzles(puzzles)
+    gui.quit()
