@@ -24,6 +24,10 @@ class Chess_Chat_GUI:
         self.chat_width = self.chatbox_width - 2*self.margin_size
         self.chat_height = self.screen_height - 2*self.margin_size
         self.BLACK = (0,0,0)
+        self.DARKGRAY = (64,64,64)
+        self.GRAY = (128,128,128)
+        self.LIGHTGRAY = (192,192,192)
+        self.WHITE = (255,255,255)
         self.chats = []
 
     def init(self):
@@ -33,18 +37,42 @@ class Chess_Chat_GUI:
         pygame.display.set_caption("Chess Puzzle")
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.clock = pygame.time.Clock()
-        self.font = pygame.freetype.SysFont("Arial", 24)
+        self.font = pygame.freetype.SysFont("Arial", 18)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish_15.1_win_x64_avx2/stockfish-windows-2022-x86-64-avx2.exe")
 
     def quit(self):
+        # Quit pygame
         self.engine.quit()
         pygame.quit()
 
-    def display_chat(self, pad = 2):
-        pos = (self.board_size + self.margin_size, self.margin_size)
-        for chat in self.chats:
-            rect = self.font.render_to(self.screen, pos, chat, self.BLACK)
-            pos = (pos[0], pos[1] + rect.height + pad)
+    def create_board_image(self, board, human_color, move, from_square):
+        drawing = chess.svg.board(
+            board,
+            orientation = chess.WHITE if human_color is None else human_color,
+            lastmove = move,
+            check = board.king(board.turn) if board.is_check() else None,
+            fill = {from_square: "#cc0000cc"},
+            size = self.board_size
+        )
+        f = open("board.svg", 'w')
+        f.write(drawing)
+        f.close()
+        svg2png(url = "board.svg", write_to = "board.png")
+
+    def display_chat(self, pad = 6, scroll_up = True, focused = True):
+        pos = [self.board_size + self.margin_size + pad, self.margin_size]
+        if scroll_up:
+            pos[1] += self.chat_height
+            for i, chat in enumerate(self.chats[::-1]):
+                col = self.GRAY if focused and i != 0 else self.BLACK
+                rect = self.font.get_rect(chat)
+                pos[1] -= rect.height + pad
+                self.font.render_to(self.screen, pos, chat, col)
+        else:
+            for i, chat in enumerate(self.chats):
+                col = self.GRAY if focused and i + 1 != len(self.chats) else self.BLACK
+                rect = self.font.render_to(self.screen, pos, chat, col)
+                pos[1] += rect.height + pad
 
     def play_game(self, human_color = None):
         # Initialize game variables
@@ -109,22 +137,15 @@ class Chess_Chat_GUI:
                     self.chats.append("It's a draw!")
 
             # Convert board.svg to board.png
-            drawing = chess.svg.board(
-                board,
-                orientation = chess.WHITE if human_color is None else human_color,
-                lastmove = move,
-                check = board.king(board.turn) if board.is_check() else None,
-                fill = {from_square: "#cc0000cc"},
-                size = self.board_size
-            )
-            f = open("board.svg", 'w')
-            f.write(drawing)
-            svg2png(url = "board.svg", write_to = "board.png")
-            # Display board.png
+            self.create_board_image(board, human_color, move, from_square)
+
+            # Display background color
+            self.screen.fill(self.DARKGRAY)
+            # Display board
             board_image = pygame.image.load("board.png")
-            self.screen.blit(board_image, (0, 0))
+            self.screen.blit(board_image, (0, 0), pygame.Rect(0, 0, self.board_size, self.board_size))
             # Display chat
-            self.screen.fill((200, 200, 200), pygame.Rect(self.board_size, 0, self.chatbox_width, self.screen_height))
+            self.screen.fill(self.WHITE, pygame.Rect(self.board_size + self.margin_size, self.margin_size, self.chat_width, self.chat_height))
             self.display_chat()
             pygame.display.flip()
             
@@ -208,23 +229,15 @@ class Chess_Chat_GUI:
                 running = False
 
             # Convert board.svg to board.png
-            drawing = chess.svg.board(
-                board,
-                orientation = human_color,
-                lastmove = move,
-                check = board.king(board.turn) if board.is_check() else None,
-                fill = {from_square: "#cc0000cc"},
-                size = self.board_size
-            )
-            f = open("board.svg", 'w')
-            f.write(drawing)
-            f.close()
-            svg2png(url = "board.svg", write_to = "board.png")
+            self.create_board_image(board, human_color, move, from_square)
+
+            # Display background color
+            self.screen.fill(self.DARKGRAY)
             # Display board.png
             board_image = pygame.image.load("board.png")
             self.screen.blit(board_image, (0, 0), pygame.Rect(0, 0, self.board_size, self.board_size))
             # Display chat
-            self.screen.fill((200, 200, 200), pygame.Rect(self.board_size, 0, self.chatbox_width, self.screen_height))
+            self.screen.fill(self.WHITE, pygame.Rect(self.board_size + self.margin_size, self.margin_size, self.chat_width, self.chat_height))
             self.display_chat()
             pygame.display.flip()
 
@@ -238,9 +251,8 @@ class Chess_Chat_GUI:
         t_tot = m_tot = x_tot = r_tot = 0
         n = len(puzzles)
 
-        puzzles = puzzles.sample(n).reset_index(drop=True)
         for i, puzzle in puzzles.iterrows():
-            self.chats.append("Puzzle #" + str(i + 1))
+            self.chats.append("Puzzle " + str(i + 1) + " of " + str(n))
             board = chess.Board(puzzle["Board"])
             uci_moves = puzzle["Moves"]
             theme = puzzle["Theme"]
@@ -257,6 +269,7 @@ if __name__ == "__main__":
     puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
     
     # Run puzzles in GUI
+    puzzles = puzzles.sample(10).reset_index(drop=True)
     gui = Chess_Chat_GUI()
     gui.init()
     gui.play_puzzles(puzzles)
