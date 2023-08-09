@@ -34,7 +34,7 @@ class Chess_Chat_GUI:
         # Initialize pygame
         pygame.init()
         pygame.display.set_icon(pygame.image.load("icon.svg"))
-        pygame.display.set_caption("Chess Puzzle")
+        pygame.display.set_caption("Chess Chat")
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.clock = pygame.time.Clock()
         self.font = pygame.freetype.SysFont("Arial", 18)
@@ -45,10 +45,21 @@ class Chess_Chat_GUI:
         self.engine.quit()
         pygame.quit()
 
-    def create_board_image(self, board, human_color, move, from_square):
+    def get_square(self, x, y):
+        # Convert the position to chess coordinates
+        square = None
+        if x > self.margin_size and x < self.margin_size + self.grid_size and \
+            y > self.margin_size and y < self.margin_size + self.grid_size:
+            file = int((x - self.margin_size) // (self.grid_size / 8))
+            rank = int(7 - (y - self.margin_size) // (self.grid_size / 8))
+            square = chess.square(7 - file, 7 - rank) if self.human_color == chess.BLACK else chess.square(file, rank)
+        return square
+
+    def create_board_image(self, board: chess.Board, move, from_square):
+        # Convert board.svg to board.png
         drawing = chess.svg.board(
             board,
-            orientation = chess.WHITE if human_color is None else human_color,
+            orientation = chess.WHITE if self.human_color is None else self.human_color,
             lastmove = move,
             check = board.king(board.turn) if board.is_check() else None,
             fill = {from_square: "#cc0000cc"},
@@ -58,61 +69,67 @@ class Chess_Chat_GUI:
         f.write(drawing)
         f.close()
         svg2png(url = "board.svg", write_to = "board.png")
+        return pygame.image.load("board.png")
 
-    def display_chat(self, pad = 6, scroll_up = True, focused = True):
+    def display_chat(self, pad = 6, scroll_up = True, focused = True, caret = True):
         pos = [self.board_size + self.margin_size + pad, self.margin_size]
         if scroll_up:
             pos[1] += self.chat_height
+            if caret:
+                chat = "|" if pygame.time.get_ticks() % 1060 < 530 else " "
+                rect = self.font.get_rect("|")
+                pos[1] -= rect.height + pad
+                self.font.render_to(self.screen, pos, chat, self.BLACK)
             for i, chat in enumerate(self.chats[::-1]):
                 col = self.GRAY if focused and i != 0 else self.BLACK
                 rect = self.font.get_rect(chat)
                 pos[1] -= rect.height + pad
                 self.font.render_to(self.screen, pos, chat, col)
         else:
+            pos[1] += pad
             for i, chat in enumerate(self.chats):
                 col = self.GRAY if focused and i + 1 != len(self.chats) else self.BLACK
                 rect = self.font.render_to(self.screen, pos, chat, col)
+                pos[1] += rect.height + pad
+            if caret:
+                chat = "|" if pygame.time.get_ticks() % 1060 < 530 else " "
+                rect = self.font.get_rect("|")
+                self.font.render_to(self.screen, pos, chat, self.BLACK)
                 pos[1] += rect.height + pad
 
     def play_game(self, human_color = None):
         # Initialize game variables
         board = chess.Board()
-        from_square = None
-        move = chess.Move.null()
-        if human_color is None:
+        self.human_color = human_color
+        if self.human_color is None:
             self.chats.append("CPU vs. CPU game")
         else:
-            self.chats.append("You are playing as " + ("White" if human_color == chess.WHITE else "Black"))
+            self.chats.append("You are playing as " + ("White" if self.human_color == chess.WHITE else "Black"))
+        from_square = None
+        move = chess.Move.null()
 
         # Game loop
         running = True
         while running:
             # Make computer move
-            if board.turn != human_color:
-                move = self.engine.play(board, chess.engine.Limit(time = .5)).move
+            if board.turn != self.human_color:
+                move = self.engine.play(board, chess.engine.Limit(time = .25)).move
                 board.push(move)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 
-                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
-                    # Get the mouse position
+                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == self.human_color:
+                    # Get the mouse position and corresponding square
                     x, y = pygame.mouse.get_pos()
-                    
-                    # Convert the position to chess coordinates
-                    square = None
-                    if x > self.margin_size and x < self.margin_size + self.grid_size and \
-                        y > self.margin_size and y < self.margin_size + self.grid_size:
-                        file = int((x - self.margin_size) // (self.grid_size / 8))
-                        rank = int(7 - (y - self.margin_size) // (self.grid_size / 8))
-                        square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                    square = self.get_square(x, y)
                     
                     # Determine move
                     if square is None:
                         from_square = None
                     elif from_square is None:
-                        from_square = square if board.color_at(square) == board.turn else None
+                        from_square = square if board.color_at(square) == self.human_color else None
                     elif from_square == square:
                         from_square = None
                     else:
@@ -120,7 +137,7 @@ class Chess_Chat_GUI:
                         try:
                             move = board.find_move(from_square, square)
                         except:
-                            from_square = square if board.color_at(square) == board.turn else None
+                            from_square = square if board.color_at(square) == self.human_color else None
                         else:
                             board.push(move)
                             from_square = None
@@ -136,13 +153,10 @@ class Chess_Chat_GUI:
                 else:
                     self.chats.append("It's a draw!")
 
-            # Convert board.svg to board.png
-            self.create_board_image(board, human_color, move, from_square)
-
             # Display background color
             self.screen.fill(self.DARKGRAY)
             # Display board
-            board_image = pygame.image.load("board.png")
+            board_image = self.create_board_image(board, move, from_square)
             self.screen.blit(board_image, (0, 0), pygame.Rect(0, 0, self.board_size, self.board_size))
             # Display chat
             self.screen.fill(self.WHITE, pygame.Rect(self.board_size + self.margin_size, self.margin_size, self.chat_width, self.chat_height))
@@ -154,9 +168,9 @@ class Chess_Chat_GUI:
 
     def play_puzzle(self, board: chess.Board, uci_moves, theme):
         # Initialize puzzle variables
+        self.human_color = board.turn
+        self.chats.append("You are playing as " + ("White" if self.human_color == chess.WHITE else "Black"))
         from_square = None
-        human_color = board.turn
-        self.chats.append("You are playing as " + ("White" if human_color == chess.WHITE else "Black"))
         move = chess.Move.null()
         move_num = 0
         start_time = proactive_start = time()
@@ -169,7 +183,7 @@ class Chess_Chat_GUI:
         running = True
         while running:
             # Make computer move
-            if board.turn != human_color:
+            if board.turn != self.human_color:
                 move = chess.Move.from_uci(uci_moves[move_num])
                 board.push(move)
                 move_num += 1
@@ -185,23 +199,16 @@ class Chess_Chat_GUI:
                     running = False
                     q = True
 
-                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == human_color:
-                    # Get the mouse position
+                if event.type == pygame.MOUSEBUTTONDOWN and board.turn == self.human_color:
+                    # Get the mouse position and corresponding square
                     x, y = pygame.mouse.get_pos()
-                    
-                    # Convert the position to chess coordinates
-                    square = None
-                    if x > self.margin_size and x < self.margin_size + self.grid_size and \
-                        y > self.margin_size and y < self.margin_size + self.grid_size:
-                        file = int((x - self.margin_size) // (self.grid_size / 8))
-                        rank = int(7 - (y - self.margin_size) // (self.grid_size / 8))
-                        square = chess.square(file, rank) if human_color == chess.WHITE else chess.square(7 - file, 7 - rank)
+                    square = self.get_square(x, y)
                     
                     # Determine move
                     if square is None:
                         from_square = None
                     elif from_square is None:
-                        from_square = square if board.color_at(square) == board.turn else None
+                        from_square = square if board.color_at(square) == self.human_color else None
                     elif from_square == square:
                         from_square = None
                     else:
@@ -209,7 +216,7 @@ class Chess_Chat_GUI:
                         try:
                             human_move = board.find_move(from_square, square)
                         except:
-                            from_square = square if board.color_at(square) == board.turn else None
+                            from_square = square if board.color_at(square) == self.human_color else None
                         else:
                             if human_move.uci() == uci_moves[move_num]:
                                 move = human_move
@@ -226,15 +233,12 @@ class Chess_Chat_GUI:
             # End puzzle
             if move_num == len(uci_moves):
                 self.chats.append("Puzzle solved!")
-                running = False
-
-            # Convert board.svg to board.png
-            self.create_board_image(board, human_color, move, from_square)
+                running = False            
 
             # Display background color
             self.screen.fill(self.DARKGRAY)
             # Display board.png
-            board_image = pygame.image.load("board.png")
+            board_image = self.create_board_image(board, move, from_square)
             self.screen.blit(board_image, (0, 0), pygame.Rect(0, 0, self.board_size, self.board_size))
             # Display chat
             self.screen.fill(self.WHITE, pygame.Rect(self.board_size + self.margin_size, self.margin_size, self.chat_width, self.chat_height))
@@ -267,9 +271,9 @@ if __name__ == "__main__":
     # Obtain puzzles
     puzzles = pd.read_excel("puzzles.xlsx")
     puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
+    puzzles = puzzles.sample(10).reset_index(drop=True)
     
     # Run puzzles in GUI
-    puzzles = puzzles.sample(10).reset_index(drop=True)
     gui = Chess_Chat_GUI()
     gui.init()
     gui.play_puzzles(puzzles)
