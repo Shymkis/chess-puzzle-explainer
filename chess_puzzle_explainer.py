@@ -201,7 +201,7 @@ class Chess_Chat_GUI:
         pieces, captures, checks = self.get_pieces_captures_and_checks(uci_moves)
         move_num = 0
         start_time = proactive_start = time()
-        proactive_timeout = 2
+        proactive_timeout = 10
         display_theme = display_piece = display_capture = display_check = False
         num_mistakes = 0
         q = False
@@ -209,37 +209,37 @@ class Chess_Chat_GUI:
         # Puzzle loop
         running = True
         while running:
-            # Make computer move
             if self.board.turn != self.human_color:
+                # Make computer move
                 move = chess.Move.from_uci(uci_moves[move_num])
                 self.board.push(move)
                 move_num += 1
                 proactive_start = time()
                 display_piece = display_capture = display_check = False
-
-            # Check if human is stuck
-            if time() - proactive_start > proactive_timeout and not display_theme:
-                self.chats.append("Look for a " + theme + ".")
-                display_theme = True
-                proactive_start = time()
-            if time() - proactive_start > proactive_timeout and not display_check:
-                check = checks[move_num]
-                if check:
-                    self.chats.append("Look to check their king.")
-                    display_check = True
+            else:
+                # Check if human is stuck
+                if time() - proactive_start > proactive_timeout and not display_theme:
+                    self.chats.append("Look for a " + theme + ".")
+                    display_theme = True
                     proactive_start = time()
-            if time() - proactive_start > proactive_timeout and not display_piece:
-                piece = pieces[move_num]
-                if piece is not None:
-                    self.chats.append("Look to move your " + chess.piece_name(piece.piece_type) + ".")
-                    display_piece = True
-                    proactive_start = time()
-            if time() - proactive_start > proactive_timeout and not display_capture:
-                capture = captures[move_num]
-                if capture is not None:
-                    self.chats.append("Look to capture their " + chess.piece_name(capture.piece_type) + ".")
-                    display_capture = True
-                    proactive_start = time()
+                if time() - proactive_start > proactive_timeout and not display_check:
+                    check = checks[move_num]
+                    if check:
+                        self.chats.append("Look to check their king.")
+                        display_check = True
+                        proactive_start = time()
+                if time() - proactive_start > proactive_timeout and not display_piece:
+                    piece = pieces[move_num]
+                    if piece is not None:
+                        self.chats.append("Look to move your " + chess.piece_name(piece.piece_type) + ".")
+                        display_piece = True
+                        proactive_start = time()
+                if time() - proactive_start > proactive_timeout and not display_capture:
+                    capture = captures[move_num]
+                    if capture is not None:
+                        self.chats.append("Look to capture their " + chess.piece_name(capture.piece_type) + ".")
+                        display_capture = True
+                        proactive_start = time()
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -272,9 +272,6 @@ class Chess_Chat_GUI:
                             else:
                                 self.chats.append("Wrong move. Try again.")
                                 num_mistakes += 1
-                                if not display_theme:
-                                    self.chats.append("Look for a " + theme + ".")
-                                    display_theme = True
                             self.from_square = None
 
             # End puzzle
@@ -312,7 +309,7 @@ if __name__ == "__main__":
     # Obtain puzzles
     puzzles = pd.read_excel("puzzles.xlsx")
     puzzles["Moves"] = puzzles["Moves"].apply(lambda x: x.split()) # Convert string of moves into list
-    # puzzles = puzzles.sample(10).reset_index(drop=True)
+    puzzles = puzzles.sample(10).reset_index(drop=True)
     
     # Run puzzles in GUI
     gui = Chess_Chat_GUI()

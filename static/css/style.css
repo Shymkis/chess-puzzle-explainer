@@ -1,0 +1,5 @@
+/* You can style the chessboard container here */
+#board {
+    margin: auto;
+    margin-top: 20px;
+}
