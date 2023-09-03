@@ -1,5 +1,51 @@
-// NOTE: this example uses the chess.js library:
-// https://github.com/jhlywa/chess.js
+function CountDownTimer(duration, granularity) {
+  this.duration = duration
+  this.granularity = granularity || 1000
+  this.tickFtns = []
+  this.running = false
+}
+
+CountDownTimer.prototype.start = function() {
+  if (this.running) return
+
+  this.running = true
+  let start = Date.now()
+  let that = this
+  let diff, obj
+
+  (function timer() {
+    diff = that.duration - (((Date.now() - start) / 1000) | 0)
+
+    if (diff > 0) {
+      setTimeout(timer, that.granularity)
+    } else {
+      diff = 0
+      that.running = false
+    }
+
+    obj = CountDownTimer.parse(diff)
+    that.tickFtns.forEach(function(ftn) {
+      ftn.call(this, obj.minutes, obj.seconds)
+    }, that)
+  }())
+}
+
+CountDownTimer.prototype.onTick = function(ftn) {
+  if (typeof ftn === "function") this.tickFtns.push(ftn)
+  return this
+}
+
+CountDownTimer.prototype.expired = function() {
+  return !this.running
+}
+
+CountDownTimer.parse = function(seconds) {
+  return {
+    'minutes': (seconds / 60) | 0,
+    'seconds': (seconds % 60) | 0
+  }
+}
+
 function onDragStart(source, piece, position, orientation) {
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
@@ -38,12 +84,12 @@ function onDrop(source, target) {
   })
 
   // illegal move
-  if (move === null) return 'snapback'
+  if (move === null) return "snapback"
 
   // wrong move
   if (move.from + move.to != moves[move_num]) {
     game.undo()
-    return 'snapback'
+    return "snapback"
   }
 
   // correct move
@@ -86,13 +132,23 @@ function nextPuzzle() {
     onSnapEnd: onSnapEnd,
     orientation: (player_color == 'w') ? "white" : "black"
   }
-  board = Chessboard('board', config)
+  board = Chessboard("board", config)
+
+  timer.start()
 }
 
-const res = await fetch('./static/puzzles.json')
+function formatTime(minutes, seconds) {
+  minutes = minutes < 10 ? "0" + minutes : minutes
+  seconds = seconds < 10 ? "0" + seconds : seconds
+  timer_display.text(minutes + ':' + seconds)
+}
+
+const res = await fetch("./static/puzzles.json")
 let puzzles = await res.json()
-console.log(puzzles)
 let puzzle_num = 0
+let timer_display = $("#time")
+let timer = new CountDownTimer(60)
+timer.onTick(formatTime)
 
 let board, completed, fen, game, move_num, moves, player_color, rating, theme
 

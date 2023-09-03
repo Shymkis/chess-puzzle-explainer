@@ -12,18 +12,6 @@
    "Rating": 682
  },
  {
-   "Board": "rr5k/2R3bp/1n4p1/p3Q3/P2Pp1P1/4P2P/1P3q2/7K w - - 0 1",
-   "Moves": "e5g7",
-   "Theme": "Mate in 1",
-   "Rating": 739
- },
- {
-   "Board": "r3kb1B/ppp1n2p/2n3p1/1B1p2q1/8/1P2PP1b/P1PPQP1K/RN2R3 b - - 0 1",
-   "Moves": "g5g2",
-   "Theme": "Mate in 1",
-   "Rating": 802
- },
- {
    "Board": "8/2r3pp/4kp2/1RP1p3/1P2b1P1/4N3/5P1P/5K2 b - - 0 1",
    "Moves": "e4d3 f1e1 d3b5",
    "Theme": "Fork",
@@ -36,22 +24,40 @@
    "Rating": 817
  },
  {
-   "Board": "k3r3/p5Q1/8/2B1n1p1/2P5/5P2/Pq1r2PP/4RK2 w - - 0 1",
-   "Moves": "g7a7",
-   "Theme": "Mate in 1",
-   "Rating": 843
- },
- {
    "Board": "1r2k2r/3q1ppp/b3p3/1pn1P3/2pN4/5B2/1PP3PP/Q4RK1 w - - 0 1",
    "Moves": "f3c6 b8b6 c6d7",
    "Theme": "Pin",
    "Rating": 846
  },
  {
+  "Board": "3rkb1r/pp2pppp/8/5b2/3nN3/5P2/PP4PP/R1B1KBNR b - - 0 1",
+  "Moves": "d4c2 e1f2 c2a1",
+  "Theme": "Fork",
+  "Rating": 850
+ },
+ {
+  "Board": "2bk3r/Q4pp1/1p2p3/3pB2p/3P3P/3P4/PP1q2P1/1K3R2 b - - 0 1",
+  "Moves": "d2d3 b1c1 d3f1",
+  "Theme": "Fork",
+  "Rating": 861
+ },
+ {
+  "Board": "2k5/ppp5/8/5n2/5p2/8/PPP1B3/3K4 w - - 0 1",
+  "Moves": "e2g4 c8d7 g4f5",
+  "Theme": "Pin",
+  "Rating": 880
+ },
+ {
    "Board": "r3k2r/p1pq1pb1/1p1p3p/3P2pP/4P3/8/P3BPP1/1R1QK2R w - - 0 1",
    "Moves": "e2b5 d7b5 b1b5",
    "Theme": "Pin",
    "Rating": 896
+ },
+ {
+  "Board": "r1b2rk1/pp1n1p1p/6p1/6q1/2BP4/2B4P/P1P3P1/R2Q1RK1 b - - 0 1",
+  "Moves": "g5e3 g1h2 e3c3",
+  "Theme": "Fork",
+  "Rating": 924
  },
  {
    "Board": "2k2b2/1pp5/p4p2/8/1r2p3/4K3/P4P2/R5R1 w - - 0 1",
@@ -66,6 +72,12 @@
    "Rating": 1006
  },
  {
+  "Board": "4r3/3b4/3P1k1p/p2R1p2/Pp3P1P/1P3K2/8/3B4 b - - 0 1",
+  "Moves": "d7c6 f3f2 c6d5",
+  "Theme": "Pin",
+  "Rating": 1027
+ },
+ {
    "Board": "rn5k/pp4pp/2pp4/q4r2/2P5/2N1Q2P/PP3PP1/R3K2R b K - 0 1",
    "Moves": "f5e5 e1g1 e5e3",
    "Theme": "Pin",
@@ -76,11 +88,5 @@
    "Moves": "g3g5 e5g5 e3g5",
    "Theme": "Fork",
    "Rating": 1066
- },
- {
-   "Board": "8/8/R6P/5p2/p7/4k1P1/r7/4K3 b - - 0 1",
-   "Moves": "a2a1",
-   "Theme": "Mate in 1",
-   "Rating": 1170
  }
 ]
