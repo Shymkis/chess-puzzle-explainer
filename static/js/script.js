@@ -1,51 +1,3 @@
-function CountDownTimer(duration, granularity) {
-  this.duration = duration
-  this.granularity = granularity || 1000
-  this.tickFtns = []
-  this.running = false
-}
-
-CountDownTimer.prototype.start = function() {
-  if (this.running) return
-
-  this.running = true
-  let start = Date.now()
-  let that = this
-  let diff, obj
-
-  (function timer() {
-    diff = that.duration - (((Date.now() - start) / 1000) | 0)
-
-    if (diff > 0) {
-      setTimeout(timer, that.granularity)
-    } else {
-      diff = 0
-      that.running = false
-    }
-
-    obj = CountDownTimer.parse(diff)
-    that.tickFtns.forEach(function(ftn) {
-      ftn.call(this, obj.minutes, obj.seconds)
-    }, that)
-  }())
-}
-
-CountDownTimer.prototype.onTick = function(ftn) {
-  if (typeof ftn === "function") this.tickFtns.push(ftn)
-  return this
-}
-
-CountDownTimer.prototype.expired = function() {
-  return !this.running
-}
-
-CountDownTimer.parse = function(seconds) {
-  return {
-    'minutes': (seconds / 60) | 0,
-    'seconds': (seconds % 60) | 0
-  }
-}
-
 function onDragStart(source, piece, position, orientation) {
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
@@ -81,12 +33,14 @@ function scrollChat() {
 }
 
 function offerHelp() {
-  let last_message = chat_display.children().last().children("p").last()
+  let last_message = chat_display.find("p").last()
   if (move_num == 0) {
-    last_message.after(`<p>Wrong move. Try looking for a ` + theme + `.</p>`)
+    last_message.after(`<p>Wrong move. Try looking for a <b>` + theme + `</b>.</p>`)
   } else if (move_num == 2) {
-    last_message.after(`<p>Wrong move. Look for a vulnerable piece to capture.</p>`)
+    last_message.after(`<p>Wrong move. Finish the ` + theme + ` by <b>capturing</b> the opponent's piece.</p>`)
   }
+  let t = chat_display.find(".time").last()
+  t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
   scrollChat()
 }
 
@@ -104,6 +58,8 @@ function onDrop(source, target) {
   // wrong move
   if (move.from + move.to != moves[move_num]) {
     game.undo()
+    failure = true
+    num_mistakes++
     offerHelp()
     return "snapback"
   }
@@ -122,13 +78,22 @@ function onSnapEnd() {
   board.position(game.fen())
 
   if (completed) {
+    if (!failure) successes++
     puzzle_num++
     nextPuzzle()
   }
 }
 
 function nextPuzzle() {
-  if (puzzle_num == puzzles.length) return
+  if (puzzle_num == puzzles.length) {
+    console.log(num_mistakes)
+    console.log(num_mistakes/puzzle_num)
+    console.log(successes)
+    console.log(successes/puzzle_num)
+    console.log(time_limit - timer.remaining)
+    console.log((time_limit - timer.remaining)/puzzle_num)
+    return
+  }
 
   fen = puzzles[puzzle_num]["Board"]
   moves = puzzles[puzzle_num]["Moves"]
@@ -138,13 +103,12 @@ function nextPuzzle() {
   game = new Chess(fen)
   player_c = game.turn()
   player_color = (player_c == 'w') ? "white" : "black"
-  move_num = 0
-  completed = false
+  move_num = 0, completed = false, failure = false
   
   chat_display.append(`
     <div class="received-msg">
       <p>You are playing the ` + player_color + ` pieces.</p>
-      <span class="time">18:31 PM | July 24</span>
+      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1) + `</span>
     </div>
   `)
   scrollChat()
@@ -168,14 +132,24 @@ function formatTime(minutes, seconds) {
   timer_display.text(minutes + ':' + seconds)
 }
 
-const res = await fetch("./static/puzzles.json")
+const res = await fetch("./static/data/training-puzzles.json")
 let puzzles = await res.json()
-let puzzle_num = 0
+let puzzle_num = 0, num_mistakes = 0, successes = 0, failure = false
+
 let chat_display = $("#chat")
+
 let timer_display = $("#timer")
-let timer = new CountDownTimer(60 * 10)
+let time_limit = 60*10
+let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime)
 
 let board, completed, fen, game, move_num, moves, player_c, player_color, rating, theme
+
+chat_display.append(`
+  <div class="received-msg">
+    <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+    <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+  </div>
+`)
 
 nextPuzzle()

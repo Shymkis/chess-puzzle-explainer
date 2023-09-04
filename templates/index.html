@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chessboard.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <title>Chessboard Example</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <title>Chess Puzzle Explainer</title>
 </head>
 <body>
   <div class="overall-container">
@@ -16,23 +17,19 @@
     <div class="chat-container">
       <div class="chatbox">
         <div class="msg-header">
-          <img src="{{ url_for('static', filename='img/avatars/xai-avatar.png') }}" class="msgimg">
+          <img src="{{ url_for('static', filename='img/avatars/xai-avatar.png') }}">
           <div class="active">
             <p>AI Teammate</p>
           </div>
         </div>
-        <div class="msg-inbox" id="chat">
-          <div class="received-msg">
-            <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-            <span class="time">18:31 PM | July 24</span>
-          </div>
-        </div>
+        <div class="msg-inbox" id="chat"></div>
       </div>
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
   <script src="{{ url_for('static', filename='js/chessboard.js') }}"></script>
   <script src="{{ url_for('static', filename='js/chess.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
   <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
