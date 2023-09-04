@@ -3,16 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chessboard.css')}}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chessboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <title>Chessboard Example</title>
 </head>
 <body>
-  <p><span id="time"></span></p>
-  <div id="board" style="width: 400px;"></div>
-  <script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/chessboard.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/chess.js')}}"></script>
-  <script type="module" src="{{ url_for('static', filename='js/script.js')}}"></script>
+  <div class="overall-container">
+    <div class="board-container">
+      <p><span id="timer"></span></p>
+      <div id="board"></div>
+    </div>
+    <div class="chat-container">
+      <div class="chatbox">
+        <div class="msg-header">
+          <img src="{{ url_for('static', filename='img/avatars/xai-avatar.png') }}" class="msgimg">
+          <div class="active">
+            <p>AI Teammate</p>
+          </div>
+        </div>
+        <div class="msg-inbox" id="chat">
+          <div class="received-msg">
+            <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+            <span class="time">18:31 PM | July 24</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chessboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chess.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

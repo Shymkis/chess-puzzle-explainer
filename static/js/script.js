@@ -51,15 +51,14 @@ function onDragStart(source, piece, position, orientation) {
   if (game.game_over()) return false
 
   // do not pick up pieces if it's not the player's turn
-  if (game.turn() != player_color) return false
+  if (game.turn() != player_c) return false
 
   // only pick up pieces for player color
-  if (!piece.startsWith(player_color)) return false
+  if (!piece.startsWith(player_c)) return false
 }
 
 function makeRandomMove() {
   let possibleMoves = game.moves()
-  console.log(possibleMoves)
 
   // game over
   if (possibleMoves.length === 0) return
@@ -73,6 +72,22 @@ function makePuzzleMove() {
   game.move(moves[move_num], { sloppy: true })
   board.position(game.fen())
   move_num++
+}
+
+function scrollChat() {
+  let scroll_height = 0
+  chat_display.children().each(function() { scroll_height += $(this).height() })
+  chat_display.animate({ scrollTop: scroll_height })
+}
+
+function offerHelp() {
+  let last_message = chat_display.children().last().children("p").last()
+  if (move_num == 0) {
+    last_message.after(`<p>Wrong move. Try looking for a ` + theme + `.</p>`)
+  } else if (move_num == 2) {
+    last_message.after(`<p>Wrong move. Look for a vulnerable piece to capture.</p>`)
+  }
+  scrollChat()
 }
 
 function onDrop(source, target) {
@@ -89,6 +104,7 @@ function onDrop(source, target) {
   // wrong move
   if (move.from + move.to != moves[move_num]) {
     game.undo()
+    offerHelp()
     return "snapback"
   }
 
@@ -115,22 +131,31 @@ function nextPuzzle() {
   if (puzzle_num == puzzles.length) return
 
   fen = puzzles[puzzle_num]["Board"]
-  moves = puzzles[puzzle_num]["Moves"].split(" ")
+  moves = puzzles[puzzle_num]["Moves"]
   theme = puzzles[puzzle_num]["Theme"]
   rating = puzzles[puzzle_num]["Rating"]
   
   game = new Chess(fen)
-  player_color = game.turn()
+  player_c = game.turn()
+  player_color = (player_c == 'w') ? "white" : "black"
   move_num = 0
   completed = false
   
+  chat_display.append(`
+    <div class="received-msg">
+      <p>You are playing the ` + player_color + ` pieces.</p>
+      <span class="time">18:31 PM | July 24</span>
+    </div>
+  `)
+  scrollChat()
+
   let config = {
     draggable: true,
     position: fen,
     onDragStart: onDragStart,
     onDrop: onDrop,
     onSnapEnd: onSnapEnd,
-    orientation: (player_color == 'w') ? "white" : "black"
+    orientation: player_color
   }
   board = Chessboard("board", config)
 
@@ -146,10 +171,11 @@ function formatTime(minutes, seconds) {
 const res = await fetch("./static/puzzles.json")
 let puzzles = await res.json()
 let puzzle_num = 0
-let timer_display = $("#time")
-let timer = new CountDownTimer(60)
+let chat_display = $("#chat")
+let timer_display = $("#timer")
+let timer = new CountDownTimer(60 * 10)
 timer.onTick(formatTime)
 
-let board, completed, fen, game, move_num, moves, player_color, rating, theme
+let board, completed, fen, game, move_num, moves, player_c, player_color, rating, theme
 
 nextPuzzle()

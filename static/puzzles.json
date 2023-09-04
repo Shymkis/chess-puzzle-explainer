@@ -1,91 +1,91 @@
 [
  {
    "Board": "8/8/1pb3k1/p2p2p1/6Pp/P1PNKP2/8/8 w - - 0 1",
-   "Moves": "d3e5 g6f6 e5c6",
+   "Moves": ["d3e5", "g6f6", "e5c6"],
    "Theme": "Fork",
    "Rating": 599
  },
  {
    "Board": "8/r1k2pp1/B7/PP6/8/5KP1/8/8 w - - 0 1",
-   "Moves": "b5b6 c7b8 b6a7",
+   "Moves": ["b5b6", "c7b8", "b6a7"],
    "Theme": "Fork",
    "Rating": 682
  },
  {
    "Board": "8/2r3pp/4kp2/1RP1p3/1P2b1P1/4N3/5P1P/5K2 b - - 0 1",
-   "Moves": "e4d3 f1e1 d3b5",
+   "Moves": ["e4d3", "f1e1", "d3b5"],
    "Theme": "Fork",
    "Rating": 809
  },
  {
    "Board": "8/4k3/B5p1/2p1Pp1p/2P2P1P/3K4/2n5/8 b - - 0 1",
-   "Moves": "c2b4 d3e3 b4a6",
+   "Moves": ["c2b4", "d3e3", "b4a6"],
    "Theme": "Fork",
    "Rating": 817
  },
  {
    "Board": "1r2k2r/3q1ppp/b3p3/1pn1P3/2pN4/5B2/1PP3PP/Q4RK1 w - - 0 1",
-   "Moves": "f3c6 b8b6 c6d7",
+   "Moves": ["f3c6", "b8b6", "c6d7"],
    "Theme": "Pin",
    "Rating": 846
  },
  {
   "Board": "3rkb1r/pp2pppp/8/5b2/3nN3/5P2/PP4PP/R1B1KBNR b - - 0 1",
-  "Moves": "d4c2 e1f2 c2a1",
+  "Moves": ["d4c2", "e1f2", "c2a1"],
   "Theme": "Fork",
   "Rating": 850
  },
  {
   "Board": "2bk3r/Q4pp1/1p2p3/3pB2p/3P3P/3P4/PP1q2P1/1K3R2 b - - 0 1",
-  "Moves": "d2d3 b1c1 d3f1",
+  "Moves": ["d2d3", "b1c1", "d3f1"],
   "Theme": "Fork",
   "Rating": 861
  },
  {
   "Board": "2k5/ppp5/8/5n2/5p2/8/PPP1B3/3K4 w - - 0 1",
-  "Moves": "e2g4 c8d7 g4f5",
+  "Moves": ["e2g4", "c8d7", "g4f5"],
   "Theme": "Pin",
   "Rating": 880
  },
  {
    "Board": "r3k2r/p1pq1pb1/1p1p3p/3P2pP/4P3/8/P3BPP1/1R1QK2R w - - 0 1",
-   "Moves": "e2b5 d7b5 b1b5",
+   "Moves": ["e2b5", "d7b5", "b1b5"],
    "Theme": "Pin",
    "Rating": 896
  },
  {
   "Board": "r1b2rk1/pp1n1p1p/6p1/6q1/2BP4/2B4P/P1P3P1/R2Q1RK1 b - - 0 1",
-  "Moves": "g5e3 g1h2 e3c3",
+  "Moves": ["g5e3", "g1h2", "e3c3"],
   "Theme": "Fork",
   "Rating": 924
  },
  {
    "Board": "2k2b2/1pp5/p4p2/8/1r2p3/4K3/P4P2/R5R1 w - - 0 1",
-   "Moves": "g1g8 c8d7 g8f8",
+   "Moves": ["g1g8", "c8d7", "g8f8"],
    "Theme": "Pin",
    "Rating": 983
  },
  {
    "Board": "8/3r4/6kP/3r4/5P1Q/8/6PK/8 b - - 0 1",
-   "Moves": "d5h5 h4h5 g6h5",
+   "Moves": ["d5h5", "h4h5", "g6h5"],
    "Theme": "Pin",
    "Rating": 1006
  },
  {
   "Board": "4r3/3b4/3P1k1p/p2R1p2/Pp3P1P/1P3K2/8/3B4 b - - 0 1",
-  "Moves": "d7c6 f3f2 c6d5",
+  "Moves": ["d7c6", "f3f2", "c6d5"],
   "Theme": "Pin",
   "Rating": 1027
  },
  {
    "Board": "rn5k/pp4pp/2pp4/q4r2/2P5/2N1Q2P/PP3PP1/R3K2R b K - 0 1",
-   "Moves": "f5e5 e1g1 e5e3",
+   "Moves": ["f5e5", "e1g1", "e5e3"],
    "Theme": "Pin",
    "Rating": 1039
  },
  {
    "Board": "5rk1/p4p2/2pr4/3Pq1p1/2K1P3/2P1QPR1/2P5/8 w - - 0 1",
-   "Moves": "g3g5 e5g5 e3g5",
+   "Moves": ["g3g5", "e5g5", "e3g5"],
    "Theme": "Fork",
    "Rating": 1066
  }
