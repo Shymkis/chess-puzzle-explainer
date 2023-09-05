@@ -33,6 +33,8 @@ function scrollChat() {
 }
 
 function offerHelp() {
+  if (protocol == "no-exp") return
+
   let last_message = chat_display.find("p").last()
   if (move_num == 0) {
     last_message.after(`<p>Wrong move. Try looking for a <b>` + theme + `</b>.</p>`)
@@ -86,12 +88,17 @@ function onSnapEnd() {
 
 function nextPuzzle() {
   if (puzzle_num == puzzles.length) {
-    console.log(num_mistakes)
-    console.log(num_mistakes/puzzle_num)
-    console.log(successes)
-    console.log(successes/puzzle_num)
-    console.log(time_limit - timer.remaining)
-    console.log((time_limit - timer.remaining)/puzzle_num)
+    let summary_data = {
+      "user_id": Math.floor(Math.random() * 1000000),
+      "protocol": protocol,
+      "mistakes": num_mistakes,
+      "mistakes/puzzle": num_mistakes/puzzle_num,
+      "successes": successes,
+      "successes/puzzle": successes/puzzle_num,
+      "seconds": time_limit - timer.remaining,
+      "seconds/puzzle": (time_limit - timer.remaining)/puzzle_num
+    }
+    console.log(summary_data)
     return
   }
 
@@ -122,8 +129,6 @@ function nextPuzzle() {
     orientation: player_color
   }
   board = Chessboard("board", config)
-
-  timer.start()
 }
 
 function formatTime(minutes, seconds) {
@@ -136,6 +141,7 @@ const res = await fetch("./static/data/training-puzzles.json")
 let puzzles = await res.json()
 let puzzle_num = 0, num_mistakes = 0, successes = 0, failure = false
 
+let protocol = "no-exp"
 let chat_display = $("#chat")
 
 let timer_display = $("#timer")
@@ -146,10 +152,11 @@ timer.onTick(formatTime)
 let board, completed, fen, game, move_num, moves, player_c, player_color, rating, theme
 
 chat_display.append(`
-  <div class="received-msg">
-    <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-    <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
-  </div>
+<div class="received-msg">
+  <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+  <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+</div>
 `)
 
 nextPuzzle()
+timer.start()
