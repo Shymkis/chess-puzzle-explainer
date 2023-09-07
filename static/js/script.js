@@ -92,20 +92,54 @@ function nextPuzzle() {
       "user_id": Math.floor(Math.random() * 1000000),
       "protocol": protocol,
       "mistakes": num_mistakes,
-      "mistakes/puzzle": num_mistakes/puzzle_num,
+      "avg_mistakes": num_mistakes/puzzle_num,
       "successes": successes,
-      "successes/puzzle": successes/puzzle_num,
+      "avg_successes": successes/puzzle_num,
       "seconds": time_limit - timer.remaining,
-      "seconds/puzzle": (time_limit - timer.remaining)/puzzle_num
+      "avg_seconds": (time_limit - timer.remaining)/puzzle_num
     }
-    console.log(summary_data)
+    $.ajax({
+      url: "/process",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(summary_data),
+      success: function(response) {
+        console.log(response)
+      },
+      error: function(error) {
+        console.log(error)
+      }
+    })
     return
   }
+  let summary_data = {
+    "user_id": Math.floor(Math.random() * 1000000),
+    "date": Date.now(),
+    "protocol": protocol,
+    "mistakes": num_mistakes,
+    "avg_mistakes": num_mistakes/puzzle_num,
+    "successes": successes,
+    "avg_successes": successes/puzzle_num,
+    "seconds": time_limit - timer.remaining,
+    "avg_seconds": (time_limit - timer.remaining)/puzzle_num
+  }
+  $.ajax({
+    url: "/process",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(summary_data),
+    success: function(response) {
+      console.log(response)
+    },
+    error: function(error) {
+      console.log(error)
+    }
+  })
 
-  fen = puzzles[puzzle_num]["Board"]
-  moves = puzzles[puzzle_num]["Moves"]
-  theme = puzzles[puzzle_num]["Theme"]
-  rating = puzzles[puzzle_num]["Rating"]
+  fen = puzzles[puzzle_num]["fen"]
+  moves = puzzles[puzzle_num]["moves"].split(" ")
+  theme = puzzles[puzzle_num]["theme"]
+  rating = puzzles[puzzle_num]["rating"]
   
   game = new Chess(fen)
   player_c = game.turn()
@@ -137,8 +171,6 @@ function formatTime(minutes, seconds) {
   timer_display.text(minutes + ':' + seconds)
 }
 
-const res = await fetch("./static/data/training-puzzles.json")
-let puzzles = await res.json()
 let puzzle_num = 0, num_mistakes = 0, successes = 0, failure = false
 
 let protocol = "no-exp"
@@ -152,10 +184,10 @@ timer.onTick(formatTime)
 let board, completed, fen, game, move_num, moves, player_c, player_color, rating, theme
 
 chat_display.append(`
-<div class="received-msg">
-  <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-  <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
-</div>
+  <div class="received-msg">
+    <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+    <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+  </div>
 `)
 
 nextPuzzle()
