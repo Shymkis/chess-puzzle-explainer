@@ -9,17 +9,6 @@ function onDragStart(source, piece, position, orientation) {
   if (!piece.startsWith(player_c)) return false
 }
 
-function makeRandomMove() {
-  let possibleMoves = game.moves()
-
-  // game over
-  if (possibleMoves.length === 0) return
-
-  let randomIdx = Math.floor(Math.random() * possibleMoves.length)
-  game.move(possibleMoves[randomIdx])
-  board.position(game.fen())
-}
-
 function makePuzzleMove() {
   game.move(moves[move_num], { sloppy: true })
   board.position(game.fen())
