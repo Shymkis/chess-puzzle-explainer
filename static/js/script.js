@@ -24,6 +24,7 @@ function makePuzzleMove() {
   game.move(moves[move_num], { sloppy: true })
   board.position(game.fen())
   move_num++
+  move_start = Date.now()
 }
 
 function scrollChat() {
@@ -33,7 +34,7 @@ function scrollChat() {
 }
 
 function offerHelp() {
-  if (protocol == "no-exp") return
+  if (protocol == "base" || protocol == "testing") return
 
   let last_message = chat_display.find("p").last()
   if (move_num == 0) {
@@ -57,12 +58,34 @@ function onDrop(source, target) {
   // illegal move
   if (move === null) return "snapback"
 
+  // log legal move
+  let move_string = move.from + move.to
+  let correct = move_string == moves[move_num]
+  let unix_time = Date.now()
+  $.ajax({
+    url: "/user_move",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      "user_id": user_id,
+      "unix_time": unix_time,
+      "puzzle_id": puzzles[puzzle_num]["id"],
+      "move_num": move_num + 1,
+      "protocol": protocol,
+      "move": move_string,
+      "mistake": !correct,
+      "duration": unix_time - move_start
+    }),
+    error: function(error) {
+      console.log(error)
+    }
+  })
+
   // wrong move
-  if (move.from + move.to != moves[move_num]) {
+  if (!correct) {
     game.undo()
-    failure = true
-    num_mistakes++
     offerHelp()
+    move_start = Date.now()
     return "snapback"
   }
 
@@ -80,7 +103,6 @@ function onSnapEnd() {
   board.position(game.fen())
 
   if (completed) {
-    if (!failure) successes++
     puzzle_num++
     nextPuzzle()
   }
@@ -88,53 +110,9 @@ function onSnapEnd() {
 
 function nextPuzzle() {
   if (puzzle_num == puzzles.length) {
-    let summary_data = {
-      "user_id": Math.floor(Math.random() * 1000000),
-      "protocol": protocol,
-      "mistakes": num_mistakes,
-      "avg_mistakes": num_mistakes/puzzle_num,
-      "successes": successes,
-      "avg_successes": successes/puzzle_num,
-      "seconds": time_limit - timer.remaining,
-      "avg_seconds": (time_limit - timer.remaining)/puzzle_num
-    }
-    $.ajax({
-      url: "/process",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(summary_data),
-      success: function(response) {
-        console.log(response)
-      },
-      error: function(error) {
-        console.log(error)
-      }
-    })
+    console.log("Go to next page")
     return
   }
-  let summary_data = {
-    "user_id": Math.floor(Math.random() * 1000000),
-    "date": Date.now(),
-    "protocol": protocol,
-    "mistakes": num_mistakes,
-    "avg_mistakes": num_mistakes/puzzle_num,
-    "successes": successes,
-    "avg_successes": successes/puzzle_num,
-    "seconds": time_limit - timer.remaining,
-    "avg_seconds": (time_limit - timer.remaining)/puzzle_num
-  }
-  $.ajax({
-    url: "/process",
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(summary_data),
-    success: function(response) {
-      console.log(response)
-    },
-    error: function(error) {
-      console.log(error)
-    }
-  })
 
   fen = puzzles[puzzle_num]["fen"]
   moves = puzzles[puzzle_num]["moves"].split(" ")
@@ -144,7 +122,7 @@ function nextPuzzle() {
   game = new Chess(fen)
   player_c = game.turn()
   player_color = (player_c == 'w') ? "white" : "black"
-  move_num = 0, completed = false, failure = false
+  move_num = 0, completed = false
   
   chat_display.append(`
     <div class="received-msg">
@@ -163,6 +141,7 @@ function nextPuzzle() {
     orientation: player_color
   }
   board = Chessboard("board", config)
+  move_start = Date.now()
 }
 
 function formatTime(minutes, seconds) {
@@ -171,17 +150,24 @@ function formatTime(minutes, seconds) {
   timer_display.text(minutes + ':' + seconds)
 }
 
-let puzzle_num = 0, num_mistakes = 0, successes = 0, failure = false
+function timesUp() {
+  if (this.expired()) {
+    console.log("Go to next page")
+  }
+}
 
-let protocol = "no-exp"
+let puzzle_num = 0
+
 let chat_display = $("#chat")
 
 let timer_display = $("#timer")
 let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
-timer.onTick(formatTime)
+timer.onTick(formatTime).onTick(timesUp)
 
-let board, completed, fen, game, move_num, moves, player_c, player_color, rating, theme
+let user_id = Math.floor(Math.random()*1000000)
+
+let board, completed, fen, game, move_num, move_start, moves, player_c, player_color, rating, theme
 
 chat_display.append(`
   <div class="received-msg">
