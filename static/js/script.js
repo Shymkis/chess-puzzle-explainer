@@ -22,9 +22,7 @@ function scrollChat() {
   chat_display.animate({ scrollTop: scroll_height })
 }
 
-function offerHelp() {
-  if (protocol == "base" || protocol == "testing") return
-
+function explain() {
   let last_message = chat_display.find("p").last()
   if (move_num == 0) {
     last_message.after(`<p>Wrong move. Try looking for a <b>` + theme + `</b>.</p>`)
@@ -74,7 +72,7 @@ function onDrop(source, target) {
   // wrong move
   if (!correct) {
     game.undo()
-    offerHelp()
+    if (protocol != "base" && protocol != "testing") explain()
     move_start = Date.now()
     return "snapback"
   }
