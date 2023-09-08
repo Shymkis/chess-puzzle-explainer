@@ -3,7 +3,7 @@ from flask import Flask, g, render_template, request
 from random import choice
 
 DATABASE = "./static/data/database.db"
-PROTOCOLS = ["base", "detail", "foil"]
+PROTOCOLS = ["none", "base", "detail", "foil"]
 
 app = Flask(__name__)
 

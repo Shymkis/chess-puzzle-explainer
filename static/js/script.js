@@ -72,7 +72,7 @@ function onDrop(source, target) {
   // wrong move
   if (!correct) {
     game.undo()
-    if (protocol != "base" && protocol != "testing") explain()
+    if (protocol != "none" && protocol != "testing") explain()
     move_start = Date.now()
     return "snapback"
   }
