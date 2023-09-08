@@ -46,11 +46,10 @@ def user_move():
     data = request.get_json() # retrieve data from JavaScript
     con = get_db()
     con.execute(
-        "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (data["user_id"], data["unix_time"],
-         data["puzzle_id"], data["move_num"],
-         data["protocol"], data["move"],
-         data["mistake"], data["duration"])
+        "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (data["user_id"], data["puzzle_id"], data["move_num"],
+         data["move"], data["move_start"], data["move_end"],
+         data["duration"], data["mistake"], data["protocol"])
     )
     con.commit()
     con.close()

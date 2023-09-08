@@ -61,20 +61,21 @@ function onDrop(source, target) {
   // log legal move
   let move_string = move.from + move.to
   let correct = move_string == moves[move_num]
-  let unix_time = Date.now()
+  let move_end = Date.now()
   $.ajax({
     url: "/user_move",
     type: "POST",
     contentType: "application/json",
     data: JSON.stringify({
       "user_id": user_id,
-      "unix_time": unix_time,
       "puzzle_id": puzzles[puzzle_num]["id"],
       "move_num": move_num + 1,
-      "protocol": protocol,
       "move": move_string,
+      "move_start": move_start,
+      "move_end": move_end,
+      "duration": move_end - move_start,
       "mistake": !correct,
-      "duration": unix_time - move_start
+      "protocol": protocol,
     }),
     error: function(error) {
       console.log(error)
