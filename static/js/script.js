@@ -49,21 +49,22 @@ function onDrop(source, target) {
   let move_string = move.from + move.to
   let correct = move_string == moves[move_num]
   let move_end = Date.now()
+  let move_data = JSON.stringify({
+    user_id: user_id,
+    puzzle_id: puzzles[puzzle_num]["id"],
+    move_num: move_num,
+    move: move_string,
+    move_start: move_start,
+    move_end: move_end,
+    duration: move_end - move_start,
+    mistake: !correct,
+    protocol: protocol,
+  })
   $.ajax({
     url: "/user_move",
     type: "POST",
     contentType: "application/json",
-    data: JSON.stringify({
-      "user_id": user_id,
-      "puzzle_id": puzzles[puzzle_num]["id"],
-      "move_num": move_num + 1,
-      "move": move_string,
-      "move_start": move_start,
-      "move_end": move_end,
-      "duration": move_end - move_start,
-      "mistake": !correct,
-      "protocol": protocol,
-    }),
+    data: move_data,
     error: function(error) {
       console.log(error)
     }
@@ -82,7 +83,7 @@ function onDrop(source, target) {
   completed = (move_num == moves.length)
 
   // make next puzzle move
-  if (!completed) window.setTimeout(makePuzzleMove, 250)
+  if (!completed) setTimeout(makePuzzleMove, 250)
 }
 
 // update the board position after the piece snap
@@ -91,14 +92,19 @@ function onSnapEnd() {
   board.position(game.fen())
 
   if (completed) {
+    let last_message = chat_display.find("p").last()
+    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed!</p>`)
+    let t = chat_display.find(".time").last()
+    t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+    scrollChat()
     puzzle_num++
-    nextPuzzle()
+    setTimeout(nextPuzzle, 500)
   }
 }
 
 function nextPuzzle() {
   if (puzzle_num == puzzles.length) {
-    console.log("Go to next page")
+    protocol == "testing" ? location.replace("/survey") : location.replace("/testing")
     return
   }
 
@@ -109,12 +115,12 @@ function nextPuzzle() {
   
   game = new Chess(fen)
   player_c = game.turn()
-  player_color = (player_c == 'w') ? "white" : "black"
+  player_color = player_c == 'w' ? "white" : "black"
   move_num = 0, completed = false
   
   chat_display.append(`
     <div class="received-msg">
-      <p>You are playing the ` + player_color + ` pieces.</p>
+      <p>Puzzle ` + (puzzle_num + 1) + ` of ` + puzzles.length + `.</p>
       <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1) + `</span>
     </div>
   `)
@@ -133,7 +139,6 @@ function nextPuzzle() {
 }
 
 function formatTime(minutes, seconds) {
-  if (puzzle_num == puzzles.length) return
   minutes = minutes < 10 ? "0" + minutes : minutes
   seconds = seconds < 10 ? "0" + seconds : seconds
   timer_display.text(minutes + ':' + seconds)
@@ -141,7 +146,7 @@ function formatTime(minutes, seconds) {
 
 function timesUp() {
   if (this.expired()) {
-    console.log("Go to next page")
+    protocol == "testing" ? location.replace("/survey") : location.replace("/testing")
   }
 }
 
@@ -158,12 +163,21 @@ let user_id = Math.floor(Math.random()*1000000)
 
 let board, completed, fen, game, move_num, move_start, moves, player_c, player_color, rating, theme
 
-chat_display.append(`
-  <div class="received-msg">
-    <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-    <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
-  </div>
-`)
+if (protocol == "testing") {
+  chat_display.append(`
+    <div class="received-msg">
+      <p>Test your skills on these new puzzles without my help.</p>
+      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+    </div>
+  `)
+} else {
+  chat_display.append(`
+    <div class="received-msg">
+      <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+    </div>
+  `)
+}
 
 nextPuzzle()
 timer.start()

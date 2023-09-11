@@ -37,8 +37,8 @@ def index():
 @app.route("/<protocol>")
 def chess(protocol):
     if protocol not in PROTOCOLS + ["testing"]: return
-    puzzle_type = "testing" if protocol == "testing" else "practice"
-    puzzles = query_db("SELECT * FROM puzzles WHERE type = '" + puzzle_type + "'")
+    section = "testing" if protocol == "testing" else "practice"
+    puzzles = query_db("SELECT * FROM puzzles WHERE section = '" + section + "'")
     return render_template("chess.html", puzzles=puzzles, protocol=protocol)
 
 @app.route("/user_move", methods=["POST"])
