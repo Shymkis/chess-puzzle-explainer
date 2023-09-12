@@ -102,7 +102,7 @@ function onSnapEnd() {
 
 function nextPuzzle() {
   if (puzzle_num == puzzles.length) {
-    protocol == "testing" ? location.replace("/survey") : location.replace("/testing")
+    section == "testing" ? location.replace("/survey") : location.replace("/testing")
     return
   }
 
