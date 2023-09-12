@@ -1,6 +1,6 @@
 import sqlite3
-from flask import Flask, g, render_template, request
-from random import choice
+from flask import Flask, g, render_template, request, jsonify
+from random import choice, randint
 
 DATABASE = "./static/data/database.db"
 PROTOCOLS = ["none", "base", "detail", "foil"]
@@ -38,22 +38,26 @@ def index():
 def chess(protocol):
     if protocol not in PROTOCOLS + ["testing"]: return
     section = "testing" if protocol == "testing" else "practice"
-    puzzles = query_db("SELECT * FROM puzzles WHERE section = '" + section + "'")
+    puzzles = query_db("SELECT id, fen, num_moves, theme, section FROM puzzles WHERE section = ?", [section])
     return render_template("chess.html", puzzles=puzzles, protocol=protocol)
 
 @app.route("/user_move", methods=["POST"])
 def user_move():
     data = request.get_json() # retrieve data from JavaScript
+    user_id = 100
     con = get_db()
+    moves = query_db("SELECT moves FROM puzzles WHERE id = ?", [data["puzzle_id"]], one=True)["moves"].split()
+    mistake = moves[data["move_num"]] != data["move"]
+    next_move = None if data["move_num"] + 1 == len(moves) else moves[data["move_num"] + 1]
     con.execute(
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (data["user_id"], data["puzzle_id"], data["move_num"],
+        [user_id, data["puzzle_id"], data["move_num"],
          data["move"], data["move_start"], data["move_end"],
-         data["duration"], data["mistake"], data["protocol"])
+         data["duration"], mistake, data["protocol"]]
     )
     con.commit()
     con.close()
-    return "Success" # return success to JavaScript
+    return jsonify({"correct": not mistake, "next_move": next_move}) # return data to JavaScript
 
 if __name__ == "__main__":
     app.run(debug=True)

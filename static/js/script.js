@@ -10,7 +10,7 @@ function onDragStart(source, piece, position, orientation) {
 }
 
 function makePuzzleMove() {
-  game.move(moves[move_num], { sloppy: true })
+  game.move(next_move, { sloppy: true })
   board.position(game.fen())
   move_num++
   move_start = Date.now()
@@ -46,18 +46,16 @@ function onDrop(source, target) {
   if (move === null) return "snapback"
 
   // log legal move
+  let correct
   let move_string = move.from + move.to
-  let correct = move_string == moves[move_num]
   let move_end = Date.now()
   let move_data = JSON.stringify({
-    user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
     move: move_string,
     move_start: move_start,
     move_end: move_end,
     duration: move_end - move_start,
-    mistake: !correct,
     protocol: protocol,
   })
   $.ajax({
@@ -65,25 +63,29 @@ function onDrop(source, target) {
     type: "POST",
     contentType: "application/json",
     data: move_data,
-    error: function(error) {
-      console.log(error)
+    success: function(data) {
+      correct = data["correct"]
+      next_move = data["next_move"]
+  
+      // wrong move
+      if (!correct) {
+        game.undo()
+        if (protocol != "none" && protocol != "testing") explain()
+        move_start = Date.now()
+        return "snapback"
+      }
+  
+      // correct move
+      move_num++
+      completed = (move_num == num_moves)
+  
+      // make next puzzle move
+      if (!completed) setTimeout(makePuzzleMove, 250)
+    },
+    error: function(err) {
+      console.log(err)
     }
   })
-
-  // wrong move
-  if (!correct) {
-    game.undo()
-    if (protocol != "none" && protocol != "testing") explain()
-    move_start = Date.now()
-    return "snapback"
-  }
-
-  // correct move
-  move_num++
-  completed = (move_num == moves.length)
-
-  // make next puzzle move
-  if (!completed) setTimeout(makePuzzleMove, 250)
 }
 
 // update the board position after the piece snap
@@ -109,7 +111,7 @@ function nextPuzzle() {
   }
 
   fen = puzzles[puzzle_num]["fen"]
-  moves = puzzles[puzzle_num]["moves"].split(" ")
+  num_moves = puzzles[puzzle_num]["num_moves"]
   theme = puzzles[puzzle_num]["theme"]
   rating = puzzles[puzzle_num]["rating"]
   
@@ -159,11 +161,10 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 
-let user_id = Math.floor(Math.random()*1000000)
-
-let board, completed, fen, game, move_num, move_start, moves, player_c, player_color, rating, theme
+let board, completed, fen, game, move_num, move_start, next_move, num_moves, player_c, player_color, rating, theme
 
 if (protocol == "testing") {
+  timer_display.parent().prepend("Testing time remaining: ")
   chat_display.append(`
     <div class="received-msg">
       <p>Test your skills on these new puzzles without my help.</p>
@@ -171,6 +172,7 @@ if (protocol == "testing") {
     </div>
   `)
 } else {
+  timer_display.parent().prepend("Practice time remaining: ")
   chat_display.append(`
     <div class="received-msg">
       <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
