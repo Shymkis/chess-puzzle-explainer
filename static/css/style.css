@@ -23,6 +23,7 @@ body {
 }
 #board {
     margin: auto;
+    touch-action: none;
     width: 40rem;
 }
 .chat-container {

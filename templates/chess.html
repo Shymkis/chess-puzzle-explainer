@@ -32,8 +32,8 @@
   <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
   <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script>
-    var puzzles = {{ puzzles|tojson }}
-    var protocol = {{ protocol|tojson }}
+    var section = {{ section|tojson }};
+    var protocol = {{ protocol|tojson }};
   </script>
 </body>
 </html>

@@ -1,9 +1,10 @@
 import sqlite3
 from flask import Flask, g, render_template, request, jsonify
-from random import choice, randint
+from random import choice
 
 DATABASE = "./static/data/database.db"
 PROTOCOLS = ["none", "base", "detail", "foil"]
+SECTIONS = ["practice", "testing"]
 
 app = Flask(__name__)
 
@@ -34,30 +35,35 @@ def index():
     protocol = choice(PROTOCOLS)
     return render_template("index.html", protocol=protocol)
 
-@app.route("/<protocol>")
-def chess(protocol):
-    if protocol not in PROTOCOLS + ["testing"]: return
-    section = "testing" if protocol == "testing" else "practice"
-    puzzles = query_db("SELECT id, fen, num_moves, theme, section FROM puzzles WHERE section = ?", [section])
-    return render_template("chess.html", puzzles=puzzles, protocol=protocol)
+@app.route("/practice/<protocol>")
+def practice(protocol):
+    if protocol not in PROTOCOLS: return
+    return render_template("chess.html", section="practice", protocol=protocol)
+
+@app.route("/testing")
+def testing():
+    return render_template("chess.html", section="testing", protocol="none")
+
+@app.route("/get_puzzles/<section>", methods=["POST"])
+def get_puzzle(section):
+    if section not in SECTIONS: return
+    puzzles = query_db("SELECT * FROM puzzles WHERE section = ?", [section])
+    return jsonify(puzzles)
 
 @app.route("/user_move", methods=["POST"])
 def user_move():
-    data = request.get_json() # retrieve data from JavaScript
+    data = request.get_json()
     user_id = 100
     con = get_db()
-    moves = query_db("SELECT moves FROM puzzles WHERE id = ?", [data["puzzle_id"]], one=True)["moves"].split()
-    mistake = moves[data["move_num"]] != data["move"]
-    next_move = None if data["move_num"] + 1 == len(moves) else moves[data["move_num"] + 1]
     con.execute(
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [user_id, data["puzzle_id"], data["move_num"],
          data["move"], data["move_start"], data["move_end"],
-         data["duration"], mistake, data["protocol"]]
+         data["duration"], data["mistake"], data["protocol"]]
     )
     con.commit()
     con.close()
-    return jsonify({"correct": not mistake, "next_move": next_move}) # return data to JavaScript
+    return "Success"
 
 if __name__ == "__main__":
     app.run(debug=True)

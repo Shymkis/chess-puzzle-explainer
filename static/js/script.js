@@ -10,7 +10,7 @@ function onDragStart(source, piece, position, orientation) {
 }
 
 function makePuzzleMove() {
-  game.move(next_move, { sloppy: true })
+  game.move(moves[move_num], { sloppy: true })
   board.position(game.fen())
   move_num++
   move_start = Date.now()
@@ -46,8 +46,8 @@ function onDrop(source, target) {
   if (move === null) return "snapback"
 
   // log legal move
-  let correct
   let move_string = move.from + move.to
+  let mistake = move_string != moves[move_num]
   let move_end = Date.now()
   let move_data = JSON.stringify({
     puzzle_id: puzzles[puzzle_num]["id"],
@@ -56,6 +56,7 @@ function onDrop(source, target) {
     move_start: move_start,
     move_end: move_end,
     duration: move_end - move_start,
+    mistake: mistake,
     protocol: protocol,
   })
   $.ajax({
@@ -64,21 +65,16 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
-      correct = data["correct"]
-      next_move = data["next_move"]
-  
       // wrong move
-      if (!correct) {
+      if (mistake) {
         game.undo()
-        if (protocol != "none" && protocol != "testing") explain()
+        if (protocol != "none") explain()
         move_start = Date.now()
         return "snapback"
       }
-  
       // correct move
       move_num++
-      completed = (move_num == num_moves)
-  
+      completed = (move_num == moves.length)
       // make next puzzle move
       if (!completed) setTimeout(makePuzzleMove, 250)
     },
@@ -111,7 +107,7 @@ function nextPuzzle() {
   }
 
   fen = puzzles[puzzle_num]["fen"]
-  num_moves = puzzles[puzzle_num]["num_moves"]
+  moves = puzzles[puzzle_num]["moves"].split(" ")
   theme = puzzles[puzzle_num]["theme"]
   rating = puzzles[puzzle_num]["rating"]
   
@@ -161,25 +157,36 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 
-let board, completed, fen, game, move_num, move_start, next_move, num_moves, player_c, player_color, rating, theme
+let board, completed, fen, game, move_num, move_start, moves, player_c, player_color, puzzles, rating, theme
 
-if (protocol == "testing") {
-  timer_display.parent().prepend("Testing time remaining: ")
-  chat_display.append(`
-    <div class="received-msg">
-      <p>Test your skills on these new puzzles without my help.</p>
-      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
-    </div>
-  `)
-} else {
-  timer_display.parent().prepend("Practice time remaining: ")
-  chat_display.append(`
-    <div class="received-msg">
-      <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
-    </div>
-  `)
-}
-
-nextPuzzle()
-timer.start()
+$.ajax({
+  method: "POST",
+  url: "/get_puzzles/" + section,
+  dataType: "json",
+  success: function(data) {
+    puzzles = data
+    if (section == "testing") {
+      timer_display.parent().prepend("Testing time remaining: ")
+      chat_display.append(`
+        <div class="received-msg">
+          <p>Test your skills on these new puzzles without my help.</p>
+          <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+        </div>
+      `)
+    } else {
+      timer_display.parent().prepend("Practice time remaining: ")
+      chat_display.append(`
+        <div class="received-msg">
+          <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
+          <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+        </div>
+      `)
+    }
+    
+    nextPuzzle()
+    timer.start()
+  },
+  error: function(err) {
+    console.log(err)
+  }
+})
