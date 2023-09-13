@@ -50,6 +50,7 @@ function onDrop(source, target) {
   let mistake = move_string != moves[move_num]
   let move_end = Date.now()
   let move_data = JSON.stringify({
+    user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
     move: move_string,
@@ -144,9 +145,11 @@ function formatTime(minutes, seconds) {
 
 function timesUp() {
   if (this.expired()) {
-    protocol == "testing" ? location.replace("/survey") : location.replace("/testing")
+    section == "testing" ? location.replace("/survey") : location.replace("/testing")
   }
 }
+
+let user_id = Math.floor(Math.random()*1000000)
 
 let puzzle_num = 0
 

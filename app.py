@@ -37,6 +37,18 @@ def index():
 
 @app.route("/practice/<protocol>")
 def practice(protocol):
+    # q = query_db("""
+    #     SELECT protocol,
+    #     COUNT(protocol) AS value_occurrence
+    #     FROM user_moves
+    #     GROUP BY protocol
+    #     HAVING COUNT(value_occurrence) <= MIN(
+    #         SELECT COUNT(protocol)
+    #         FROM user_moves
+    #         GROUP BY user_id, protocol
+    #     )
+    # """)
+    # print(q)
     if protocol not in PROTOCOLS: return
     return render_template("chess.html", section="practice", protocol=protocol)
 
@@ -53,11 +65,10 @@ def get_puzzle(section):
 @app.route("/user_move", methods=["POST"])
 def user_move():
     data = request.get_json()
-    user_id = 100
     con = get_db()
     con.execute(
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [user_id, data["puzzle_id"], data["move_num"],
+        [data["user_id"], data["puzzle_id"], data["move_num"],
          data["move"], data["move_start"], data["move_end"],
          data["duration"], data["mistake"], data["protocol"]]
     )
