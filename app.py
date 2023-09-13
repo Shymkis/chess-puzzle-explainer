@@ -37,24 +37,12 @@ def index():
 
 @app.route("/practice/<protocol>")
 def practice(protocol):
-    # q = query_db("""
-    #     SELECT protocol,
-    #     COUNT(protocol) AS value_occurrence
-    #     FROM user_moves
-    #     GROUP BY protocol
-    #     HAVING COUNT(value_occurrence) <= MIN(
-    #         SELECT COUNT(protocol)
-    #         FROM user_moves
-    #         GROUP BY user_id, protocol
-    #     )
-    # """)
-    # print(q)
     if protocol not in PROTOCOLS: return
     return render_template("chess.html", section="practice", protocol=protocol)
 
 @app.route("/testing")
 def testing():
-    return render_template("chess.html", section="testing", protocol="none")
+    return render_template("chess.html", section="testing", protocol=None)
 
 @app.route("/get_puzzles/<section>", methods=["POST"])
 def get_puzzle(section):
@@ -69,8 +57,22 @@ def user_move():
     con.execute(
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [data["user_id"], data["puzzle_id"], data["move_num"],
-         data["move"], data["move_start"], data["move_end"],
+         data["move"], data["start_time"], data["end_time"],
          data["duration"], data["mistake"], data["protocol"]]
+    )
+    con.commit()
+    con.close()
+    return "Success"
+
+@app.route("/user_section", methods=["POST"])
+def user_sections():
+    data = request.get_json()
+    con = get_db()
+    con.execute(
+        "INSERT INTO user_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [data["user_id"], data["section"],
+         data["start_time"], data["end_time"], data["duration"],
+         data["successes"], data["puzzles"], data["protocol"]]
     )
     con.commit()
     con.close()

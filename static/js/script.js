@@ -46,19 +46,19 @@ function onDrop(source, target) {
   if (move === null) return "snapback"
 
   // log legal move
+  let move_end = Date.now()
   let move_string = move.from + move.to
   let mistake = move_string != moves[move_num]
-  let move_end = Date.now()
   let move_data = JSON.stringify({
     user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
     move: move_string,
-    move_start: move_start,
-    move_end: move_end,
+    start_time: move_start,
+    end_time: move_end,
     duration: move_end - move_start,
     mistake: mistake,
-    protocol: protocol,
+    protocol: protocol
   })
   $.ajax({
     url: "/user_move",
@@ -68,8 +68,9 @@ function onDrop(source, target) {
     success: function(data) {
       // wrong move
       if (mistake) {
+        num_mistakes++
         game.undo()
-        if (protocol != "none") explain()
+        if (section == "practice" && protocol != "none") explain()
         move_start = Date.now()
         return "snapback"
       }
@@ -96,14 +97,43 @@ function onSnapEnd() {
     let t = chat_display.find(".time").last()
     t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
     scrollChat()
+    
+    if (num_mistakes == 0) successes++
     puzzle_num++
     setTimeout(nextPuzzle, 500)
   }
 }
 
+function nextSection() {
+  // log section
+  let section_end = Date.now()
+  let section_data = JSON.stringify({
+    user_id: user_id,
+    section: section,
+    start_time: section_start,
+    end_time: section_end,
+    duration: section_end - section_start,
+    successes: successes,
+    puzzles: puzzle_num,
+    protocol: protocol
+  })
+  $.ajax({
+    url: "/user_section",
+    type: "POST",
+    contentType: "application/json",
+    data: section_data,
+    success: function(data) {
+      section == "testing" ? location.replace("/survey") : location.replace("/testing")
+    },
+    error: function(err) {
+      console.log(err)
+    }
+  })
+}
+
 function nextPuzzle() {
   if (puzzle_num == puzzles.length) {
-    section == "testing" ? location.replace("/survey") : location.replace("/testing")
+    nextSection()
     return
   }
 
@@ -115,7 +145,8 @@ function nextPuzzle() {
   game = new Chess(fen)
   player_c = game.turn()
   player_color = player_c == 'w' ? "white" : "black"
-  move_num = 0, completed = false
+  move_num = 0, num_mistakes = 0, completed = false
+  if (puzzle_num == 0) section_start = Date.now()
   
   chat_display.append(`
     <div class="received-msg">
@@ -145,13 +176,13 @@ function formatTime(minutes, seconds) {
 
 function timesUp() {
   if (this.expired()) {
-    section == "testing" ? location.replace("/survey") : location.replace("/testing")
+    nextSection()
   }
 }
 
 let user_id = Math.floor(Math.random()*1000000)
 
-let puzzle_num = 0
+let puzzle_num = 0, successes = 0
 
 let chat_display = $("#chat")
 
@@ -160,7 +191,7 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 
-let board, completed, fen, game, move_num, move_start, moves, player_c, player_color, puzzles, rating, theme
+let board, completed, fen, game, move_num, move_start, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
 
 $.ajax({
   method: "POST",
