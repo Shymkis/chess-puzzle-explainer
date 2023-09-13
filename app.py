@@ -3,7 +3,11 @@ from flask import Flask, g, render_template, request, jsonify
 from random import choice
 
 DATABASE = "./static/data/database.db"
-PROTOCOLS = ["none", "base", "detail", "foil"]
+PROTOCOLS = [
+    "n",    # none
+    "p",    # placebic
+    "a"     # actionable
+]
 SECTIONS = ["practice", "testing"]
 
 app = Flask(__name__)

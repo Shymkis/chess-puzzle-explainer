@@ -70,7 +70,7 @@ function onDrop(source, target) {
       if (mistake) {
         num_mistakes++
         game.undo()
-        if (section == "practice" && protocol != "none") explain()
+        if (section == "practice" && protocol != "n") explain()
         move_start = Date.now()
         return "snapback"
       }
@@ -187,7 +187,7 @@ let puzzle_num = 0, successes = 0
 let chat_display = $("#chat")
 
 let timer_display = $("#timer")
-let time_limit = 60*10
+let time_limit = 60*.1
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 
