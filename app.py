@@ -48,8 +48,9 @@ def practice(protocol):
 def testing():
     return render_template("chess.html", section="testing", protocol=None)
 
-@app.route("/get_puzzles/<section>", methods=["POST"])
-def get_puzzle(section):
+@app.route("/get_puzzles", methods=["POST"])
+def get_puzzles():
+    section = request.get_json()
     if section not in SECTIONS: return
     puzzles = query_db("SELECT * FROM puzzles WHERE section = ?", [section])
     return jsonify(puzzles)
@@ -57,6 +58,11 @@ def get_puzzle(section):
 @app.route("/user_move", methods=["POST"])
 def user_move():
     data = request.get_json()
+    explanation = query_db(
+        "SELECT reason FROM explanations WHERE puzzle_id = ? AND move_num = ? AND protocol = ? AND move = ?",
+        [data["puzzle_id"], data["move_num"], data["protocol"], data["move"]],
+        one=True
+    )
     con = get_db()
     con.execute(
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -66,7 +72,7 @@ def user_move():
     )
     con.commit()
     con.close()
-    return "Success"
+    return jsonify(explanation)
 
 @app.route("/user_section", methods=["POST"])
 def user_sections():

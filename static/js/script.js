@@ -22,18 +22,6 @@ function scrollChat() {
   chat_display.animate({ scrollTop: scroll_height })
 }
 
-function explain() {
-  let last_message = chat_display.find("p").last()
-  if (move_num == 0) {
-    last_message.after(`<p>Wrong move. Try looking for a <b>` + theme + `</b>.</p>`)
-  } else if (move_num == 2) {
-    last_message.after(`<p>Wrong move. Finish the ` + theme + ` by <b>capturing</b> the opponent's piece.</p>`)
-  }
-  let t = chat_display.find(".time").last()
-  t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
-  scrollChat()
-}
-
 function onDrop(source, target) {
   // see if the move is legal
   let move = game.move({
@@ -47,7 +35,7 @@ function onDrop(source, target) {
 
   // log legal move
   let move_end = Date.now()
-  let move_string = move.from + move.to
+  move_string = move.from + move.to
   let mistake = move_string != moves[move_num]
   let move_data = JSON.stringify({
     user_id: user_id,
@@ -66,11 +54,18 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
+      // explain move
+      if (section == "practice" && protocol != "n" && data != null) {
+        let last_message = chat_display.find("p").last()
+        last_message.after("<p>" + data["reason"] + "</p>")
+        let t = chat_display.find(".time").last()
+        t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+        scrollChat()
+      }
       // wrong move
       if (mistake) {
         num_mistakes++
         game.undo()
-        if (section == "practice" && protocol != "n") explain()
         move_start = Date.now()
         return "snapback"
       }
@@ -187,16 +182,17 @@ let puzzle_num = 0, successes = 0
 let chat_display = $("#chat")
 
 let timer_display = $("#timer")
-let time_limit = 60*.1
+let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 
-let board, completed, fen, game, move_num, move_start, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
+let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
 
 $.ajax({
   method: "POST",
-  url: "/get_puzzles/" + section,
-  dataType: "json",
+  url: "/get_puzzles",
+  contentType: "application/json",
+  data: JSON.stringify(section),
   success: function(data) {
     puzzles = data
     if (section == "testing") {
