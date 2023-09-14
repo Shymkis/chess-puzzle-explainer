@@ -52,7 +52,7 @@ def testing():
 def get_puzzles():
     section = request.get_json()
     if section not in SECTIONS: return
-    puzzles = query_db("SELECT * FROM puzzles WHERE section = ?", [section])
+    puzzles = query_db("SELECT * FROM puzzles WHERE section = ? ORDER BY LENGTH(fen)", [section])
     return jsonify(puzzles)
 
 @app.route("/user_move", methods=["POST"])

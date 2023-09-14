@@ -1,12 +1,28 @@
-function onDragStart(source, piece, position, orientation) {
-  // do not pick up pieces if the game is over
-  if (game.game_over()) return false
+function formatTime(minutes, seconds) {
+  minutes = minutes < 10 ? "0" + minutes : minutes
+  seconds = seconds < 10 ? "0" + seconds : seconds
+  timer_display.text(minutes + ':' + seconds)
+}
 
-  // do not pick up pieces if it's not the player's turn
-  if (game.turn() != player_c) return false
+function timesUp() {
+  if (this.expired()) {
+    nextSection()
+  }
+}
 
-  // only pick up pieces for player color
-  if (!piece.startsWith(player_c)) return false
+function removeGreySquares () {
+  $('#board .square-55d63').css('background', '')
+}
+
+function greySquare (square) {
+  let square_display = $('#board .square-' + square)
+
+  let background = whiteSquareGrey
+  if (square_display.hasClass('black-3c85d')) {
+    background = blackSquareGrey
+  }
+
+  square_display.css('background', background)
 }
 
 function makePuzzleMove() {
@@ -22,7 +38,20 @@ function scrollChat() {
   chat_display.animate({ scrollTop: scroll_height })
 }
 
+function onDragStart(source, piece, position, orientation) {
+  // do not pick up pieces if the game is over
+  if (game.game_over()) return false
+
+  // do not pick up pieces if it's not the player's turn
+  if (game.turn() != player_c) return false
+
+  // only pick up pieces for player color
+  if (!piece.startsWith(player_c)) return false
+}
+
 function onDrop(source, target) {
+  removeGreySquares()
+
   // see if the move is legal
   let move = game.move({
     from: source,
@@ -55,7 +84,7 @@ function onDrop(source, target) {
     data: move_data,
     success: function(data) {
       // explain move
-      if (section == "practice" && protocol != "n" && data != null) {
+      if (section == "practice" && data != null) {
         let last_message = chat_display.find("p").last()
         last_message.after("<p>" + data["reason"] + "</p>")
         let t = chat_display.find(".time").last()
@@ -79,6 +108,29 @@ function onDrop(source, target) {
       console.log(err)
     }
   })
+}
+
+function onMouseoverSquare (square, piece) {
+  // get list of possible moves for this square
+  let legal_moves = game.moves({
+    square: square,
+    verbose: true
+  })
+
+  // exit if there are no moves available for this square
+  if (legal_moves.length === 0) return
+
+  // highlight the square they moused over
+  greySquare(square)
+
+  // highlight the possible squares for this piece
+  for (var i = 0; i < legal_moves.length; i++) {
+    greySquare(legal_moves[i].to)
+  }
+}
+
+function onMouseoutSquare (square, piece) {
+  removeGreySquares()
 }
 
 // update the board position after the piece snap
@@ -154,40 +206,34 @@ function nextPuzzle() {
   let config = {
     draggable: true,
     position: fen,
+    orientation: player_color,
     onDragStart: onDragStart,
     onDrop: onDrop,
-    onSnapEnd: onSnapEnd,
-    orientation: player_color
+    onMouseoutSquare: onMouseoutSquare,
+    onMouseoverSquare: onMouseoverSquare,
+    onSnapEnd: onSnapEnd
   }
   board = Chessboard("board", config)
   move_start = Date.now()
 }
 
-function formatTime(minutes, seconds) {
-  minutes = minutes < 10 ? "0" + minutes : minutes
-  seconds = seconds < 10 ? "0" + seconds : seconds
-  timer_display.text(minutes + ':' + seconds)
-}
-
-function timesUp() {
-  if (this.expired()) {
-    nextSection()
-  }
-}
-
+// undeclared vars
+let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
+// user vars
 let user_id = Math.floor(Math.random()*1000000)
-
-let puzzle_num = 0, successes = 0
-
-let chat_display = $("#chat")
-
+// timer vars
 let timer_display = $("#timer")
 let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
+// board vars
+let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969'
+// puzzle vars
+let puzzle_num = 0, successes = 0
+// chat vars
+let chat_display = $("#chat")
 
-let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
-
+// get first section
 $.ajax({
   method: "POST",
   url: "/get_puzzles",
