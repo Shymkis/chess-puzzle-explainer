@@ -104,7 +104,9 @@ function onDrop(source, target) {
       }
       // undo wrong move
       if (mistake) {
+        console.log(game)
         game.undo()
+        console.log(game)
         move_start = Date.now()
         return "snapback"
       }
