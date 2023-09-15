@@ -67,10 +67,7 @@ function onDrop(source, target) {
   } else {
     completed = (move_num + 1 == moves.length)
   }
-  if (completed) {
-    puzzle_num++
-    if(num_mistakes == 0) successes++
-  }
+  if (completed && num_mistakes == 0) successes++
   // log data
   let move_data = JSON.stringify({
     user_id: user_id,
@@ -89,7 +86,7 @@ function onDrop(source, target) {
     section_duration: move_end - section_start,
     num_moves: num_moves,
     successes: successes,
-    puzzles: puzzle_num
+    puzzles: completed ? puzzle_num + 1 : puzzle_num
   })
   $.ajax({
     url: "/user_move",
@@ -111,7 +108,7 @@ function onDrop(source, target) {
         move_start = Date.now()
         return "snapback"
       }
-      // make next puzzle move
+      // make next puzzle move after correct move
       move_num++
       if (!completed) setTimeout(makePuzzleMove, 250)
     },
@@ -156,6 +153,7 @@ function onSnapEnd() {
     t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
     scrollChat()
     
+    puzzle_num++
     setTimeout(nextPuzzle, 500)
   }
 }
