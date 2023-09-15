@@ -4,9 +4,9 @@ from random import choice
 
 DATABASE = "./static/data/database.db"
 PROTOCOLS = [
-    "n",    # none
-    "p",    # placebic
-    "a"     # actionable
+    'n',    # none
+    'p',    # placebic
+    'a'     # actionable
 ]
 SECTIONS = ["practice", "testing"]
 
@@ -46,7 +46,7 @@ def practice(protocol):
 
 @app.route("/testing")
 def testing():
-    return render_template("chess.html", section="testing", protocol=None)
+    return render_template("chess.html", section="testing", protocol='n')
 
 @app.route("/get_puzzles", methods=["POST"])
 def get_puzzles():
@@ -65,10 +65,10 @@ def user_move():
     )
     con = get_db()
     con.execute(
-        "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [data["user_id"], data["puzzle_id"], data["move_num"],
-         data["move"], data["start_time"], data["end_time"],
-         data["duration"], data["mistake"], data["protocol"]]
+         data["section"], data["protocol"], data["move"],
+         data["start_time"], data["end_time"], data["duration"], data["mistake"]]
     )
     con.commit()
     con.close()
@@ -80,9 +80,9 @@ def user_sections():
     con = get_db()
     con.execute(
         "INSERT INTO user_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [data["user_id"], data["section"],
+        [data["user_id"], data["section"], data["protocol"],
          data["start_time"], data["end_time"], data["duration"],
-         data["successes"], data["puzzles"], data["protocol"]]
+         data["successes"], data["puzzles"]]
     )
     con.commit()
     con.close()

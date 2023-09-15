@@ -5,23 +5,17 @@ function formatTime(minutes, seconds) {
 }
 
 function timesUp() {
-  if (this.expired()) {
-    nextSection()
-  }
+  if (this.expired()) nextSection()
 }
 
-function removeGreySquares () {
+function removeGreySquares() {
   $('#board .square-55d63').css('background', '')
 }
 
-function greySquare (square) {
+function greySquare(square) {
   let square_display = $('#board .square-' + square)
-
   let background = whiteSquareGrey
-  if (square_display.hasClass('black-3c85d')) {
-    background = blackSquareGrey
-  }
-
+  if (square_display.hasClass('black-3c85d')) background = blackSquareGrey
   square_display.css('background', background)
 }
 
@@ -70,12 +64,13 @@ function onDrop(source, target) {
     user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
+    section: section,
+    protocol: protocol,
     move: move_string,
     start_time: move_start,
     end_time: move_end,
     duration: move_end - move_start,
-    mistake: mistake,
-    protocol: protocol
+    mistake: mistake
   })
   $.ajax({
     url: "/user_move",
@@ -84,7 +79,7 @@ function onDrop(source, target) {
     data: move_data,
     success: function(data) {
       // explain move
-      if (section == "practice" && data != null) {
+      if (data !== null) {
         let last_message = chat_display.find("p").last()
         last_message.after("<p>" + data["reason"] + "</p>")
         let t = chat_display.find(".time").last()
@@ -124,7 +119,7 @@ function onMouseoverSquare (square, piece) {
   greySquare(square)
 
   // highlight the possible squares for this piece
-  for (var i = 0; i < legal_moves.length; i++) {
+  for (let i = 0; i < legal_moves.length; i++) {
     greySquare(legal_moves[i].to)
   }
 }
@@ -140,7 +135,7 @@ function onSnapEnd() {
 
   if (completed) {
     let last_message = chat_display.find("p").last()
-    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed!</p>`)
+    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed.</p>`)
     let t = chat_display.find(".time").last()
     t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
     scrollChat()
@@ -227,7 +222,7 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 // board vars
-let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969'
+let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', redSquare
 // puzzle vars
 let puzzle_num = 0, successes = 0
 // chat vars
@@ -245,7 +240,7 @@ $.ajax({
       timer_display.parent().prepend("Testing time remaining: ")
       chat_display.append(`
         <div class="received-msg">
-          <p>Test your skills on these new puzzles without my help.</p>
+          <p>Test your skills on these new puzzles without any explanations from me.</p>
           <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
         </div>
       `)
