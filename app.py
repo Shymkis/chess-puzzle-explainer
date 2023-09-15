@@ -22,7 +22,7 @@ def get_db():
     db.row_factory = make_dicts
     return db
 
-def query_db(query, args=(), one=False):
+def query_db(query, args=(), one=False, con=None):
     cur = get_db().execute(query, args)
     rv = cur.fetchall()
     cur.close()
@@ -68,25 +68,17 @@ def user_move():
         "INSERT INTO user_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [data["user_id"], data["puzzle_id"], data["move_num"],
          data["section"], data["protocol"], data["move"],
-         data["start_time"], data["end_time"], data["duration"], data["mistake"]]
+         data["move_start"], data["move_end"], data["move_duration"], data["mistake"]]
+    )
+    con.execute(
+        "REPLACE INTO user_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [data["user_id"], data["section"], data["protocol"],
+         data["section_start"], data["section_end"], data["section_duration"],
+         data["num_moves"], data["successes"], data["puzzles"]]
     )
     con.commit()
     con.close()
     return jsonify(explanation)
-
-@app.route("/user_section", methods=["POST"])
-def user_sections():
-    data = request.get_json()
-    con = get_db()
-    con.execute(
-        "INSERT INTO user_sections VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [data["user_id"], data["section"], data["protocol"],
-         data["start_time"], data["end_time"], data["duration"],
-         data["successes"], data["puzzles"]]
-    )
-    con.commit()
-    con.close()
-    return "Success"
 
 if __name__ == "__main__":
     app.run(debug=True)
