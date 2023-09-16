@@ -1,12 +1,14 @@
 import sqlite3
-from flask import Flask, g, render_template, request, session, jsonify, url_for, redirect, current_app
+from flask import Flask, flash, g, render_template, request, session, jsonify, url_for, redirect, current_app
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_wtf import FlaskForm
 from wtforms  import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from sqlalchemy import JSON
-from random import choice
+from random import choice, randint
+from datetime import datetime, timedelta
 
 DATABASE = "./static/data/database.db"
 PROTOCOLS = [
@@ -55,6 +57,7 @@ app.config.from_object(DevelopmentConfig)
 #app.config.from_object('configuration.TestingConfig')
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 lm = LoginManager()
 lm.setup_app(app)
@@ -66,12 +69,12 @@ class User(db.Model):
     experiment_completed = db.Column(db.Boolean, default=False)
     failed_attention_checks = db.Column(db.Boolean, default=False)
     start_time = db.Column(db.DateTime)  # Record when the user started
-    end_time = db.Column(db.DateTime)  # Record when the user was finished
+    # end_time = db.Column(db.DateTime, nullable=True)  # Record when the user was finished
     consent = db.Column(db.Boolean, default=False)
     completion_code = db.Column(db.Integer, default=-1)
-    intervention_condition = db.Column(db.Integer, default=-1)
+    protocol = db.Column(db.String(20), default='z')
     compensation = db.Column(db.Float, default=0.00)
-    
+
     def is_authenticated(self):
         return True
 
@@ -116,7 +119,7 @@ class Task(db.Model):
 
 @lm.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return User.query.get(user_id)
 
 def make_dicts(cursor, row):
     return {cursor.description[i][0]: v for i, v in enumerate(row)}
@@ -241,7 +244,7 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            session['intervention_condition'] = random.randint(1, 4)
+            session['intervention_condition'] = randint(1, 4)
             # Add to user model
             user = User.query.filter_by(mturk_id=session['mturk_id']).first()
             user.intervention_condition = session['intervention_condition']
@@ -299,34 +302,51 @@ def demographics_survey_submit():
         db.session.add(survey)
         db.session.commit()
         
-        return redirect(url_for('experiment'))
+        return redirect(url_for('practice'))
 
 # ^^^ OTHERS' ROUTES ^^^
 
 # vvv   OUR ROUTES   vvv
 
-# @app.route('/')
-# def index():
-#     protocol = choice(PROTOCOLS)
-#     return render_template("index.html", protocol=protocol)
+@app.route("/practice/")
+@login_required
+def practice():
+    if not current_user.is_authenticated or not session.get('consent') == True:
+        print("User not authenticated or consented.")
+        return redirect(url_for('login'))
 
-@app.route("/practice/<protocol>")
-def practice(protocol):
-    if protocol not in PROTOCOLS: return
+    if session.get('practice_page_loaded'):
+        print("User is reloading practice page.")
+        return redirect(url_for('clear_session_and_logout'))
+    
+    session['practice_page_loaded'] = True
+    
+    protocol = choice(PROTOCOLS)
     return render_template("chess.html", section="practice", protocol=protocol)
 
-@app.route("/testing")
+@app.route("/testing/")
+@login_required
 def testing():
+    if not current_user.is_authenticated or not session.get('consent') == True:
+        print("User not authenticated or consented.")
+        return redirect(url_for('login'))
+
+    if session.get('testing_page_loaded'):
+        print("User is reloading testing page.")
+        return redirect(url_for('clear_session_and_logout'))
+    
+    session['testing_page_loaded'] = True
+
     return render_template("chess.html", section="testing", protocol='n')
 
-@app.route("/get_puzzles", methods=["POST"])
+@app.route("/get_puzzles/", methods=["POST"])
 def get_puzzles():
     section = request.get_json()
     if section not in SECTIONS: return
     puzzles = query_db("SELECT * FROM puzzles WHERE section = ? ORDER BY LENGTH(fen)", [section])
     return jsonify(puzzles)
 
-@app.route("/user_move", methods=["POST"])
+@app.route("/user_move/", methods=["POST"])
 def user_move():
     data = request.get_json()
     explanation = query_db(
