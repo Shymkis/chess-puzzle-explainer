@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Demographics Survey</title>
+    <title>Final Survey</title>
     <script>
         // Dynamically adjust the width of the radio buttons
         function adjustWidth() {
@@ -80,9 +80,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>Demographics Survey</h1>
+        <h1>Final User Survey</h1>
         <p>Please carefully and thoughtfully complete all of the following questions.</p>
-        <form id="preference-form" action="{{ url_for('demographics_survey_submit') }}" method="POST" onsubmit="return validateForm()">
+        <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
             <!-- Question 1: Age -->
             <div class="task-group" id="q1">
                 <div class="question">
