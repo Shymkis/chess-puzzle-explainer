@@ -73,8 +73,6 @@ function onDrop(source, target) {
     user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
-    section: section,
-    protocol: protocol,
     move: move_string,
     move_start: move_start,
     move_end: move_end,
@@ -89,7 +87,7 @@ function onDrop(source, target) {
     puzzles: completed ? puzzle_num + 1 : puzzle_num
   })
   $.ajax({
-    url: "/user_move",
+    url: "/log_move/",
     type: "POST",
     contentType: "application/json",
     data: move_data,
@@ -104,9 +102,7 @@ function onDrop(source, target) {
       }
       // undo wrong move
       if (mistake) {
-        console.log(game)
         game.undo()
-        console.log(game)
         move_start = Date.now()
         return "snapback"
       }
@@ -161,7 +157,7 @@ function onSnapEnd() {
 }
 
 function nextSection() {
-  section == "testing" ? location.replace("/survey") : location.replace("/testing")
+  section == "testing" ? location.replace("/survey/") : location.replace("/testing/")
 }
 
 function nextPuzzle() {
@@ -219,12 +215,11 @@ let puzzle_num = 0, successes = 0, num_moves = 0
 // chat vars
 let chat_display = $("#chat")
 
-// get first section
+// get section's puzzles
 $.ajax({
   method: "POST",
-  url: "/get_puzzles",
+  url: "/get_puzzles/",
   contentType: "application/json",
-  data: JSON.stringify(section),
   success: function(data) {
     puzzles = data
     if (section == "testing") {
