@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>Demographics Survey</title>
     <script>
         // Dynamically adjust the width of the radio buttons
@@ -227,6 +228,25 @@
                         <div class="options">
                             <label class="option-label">Strongly Agree:</label>
                             <input type="radio" name="q5" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="task-group" id="q6">
+                <div class="question">
+                    <label class="question-label" for="q6">What is your chess skill level?</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Beginner:</label>
+                            <input type="radio" name="q6" value="Beginner">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Intermediate:</label>
+                            <input type="radio" name="q6" value="Intermediate">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Expert:</label>
+                            <input type="radio" name="q6" value="Expert">
                         </div>
                     </div>
                 </div>
