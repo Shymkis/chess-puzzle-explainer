@@ -292,6 +292,7 @@ def demographics_survey_submit():
         demographics["ethnicity"] = request.form.get("q3")
         demographics["education"] = request.form.get("q4")
         demographics["attention-check"] = request.form.get("q5")
+        demographics["chess-skill"] = request.form.get("q6")
         
         failed_attention_checks = 0
         if demographics["attention-check"] != "4":
