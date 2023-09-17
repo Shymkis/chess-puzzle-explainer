@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Chess Examples</title>
+    <style>
+        {
+            box-sizing: border-box;
+        }
+        .column {
+            float: left;
+            width: 50%;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+        }
+    </style>
+</head>
+<body>
+    <!--Simple 2 column layout-->
+    <div class="row">
+        <h1>Chess Techniques</h1>
+        <div class="column" style="background-color:#FFB695;">
+            <h2>Fork</h2>
+            <div>
+                <img src="{{ url_for('static', filename='img/fork_example.png') }}" alt="fork" width="200" height="200">
+            </div>
+            <p>A fork</p>
+        </div>
+        <div class="column" style="background-color:#FFD2A5;">
+            <h2>Pin</h2>
+            <div>
+                <img src="{{ url_for('static', filename='img/pin_example.png') }}" alt="pin" width="200" height="200">
+            </div>
+            <p>A pin is a move in chess that causes the opponent to bla bla bla</p>
+    </div>
+</body>
+</html>
