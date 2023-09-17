@@ -7,7 +7,7 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">#}
     <link rel="stylesheet" href="{{ url_for('static', filename='files/bootstrap.min.css') }}">
-
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>Title</title>
 <style>
        .bodyColor {
@@ -28,7 +28,13 @@
     <br>
     <br>
     <p class="h6" style="padding-left: 50px">
-    Code: <mark> {{ code }} </mark>
+        Base Compensation: <mark> $2.50 </mark>
+    </p>
+    <p class="h6" style="padding-left: 50px">
+        Bonus Compensation: <mark> {{ "$%.2f"|format(compensation) }} </mark>
+    </p>
+    <p class="h6" style="padding-left: 50px">
+        Code: <mark> {{ completion_code }} </mark>
     </p>
 <br>
 <br>

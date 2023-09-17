@@ -271,7 +271,7 @@ def demographics_survey():
     elif Survey.query.filter_by(mturk_id=session["mturk_id"], type="demographics").first():
         return redirect(url_for("clear_session_and_logout"))
     else:
-        session["final_survey_loaded"] = True
+        session["demo_survey_loaded"] = True
         return render_template("demographics_survey.html")
     
 @app.route("/demographics_survey/submit/", methods=["POST"])
@@ -447,7 +447,30 @@ def final_survey_submit():
         db.session.add(survey)
         db.session.commit()
         
-        return redirect(url_for("thanks"))
+        return redirect(url_for("post_survey"))
+
+@app.route("/post_survey/", methods=["GET", "POST"])
+def post_survey():
+    if not current_user.is_authenticated or not session.get("consent"):
+        return redirect(url_for("clear_session_and_logout"))
+    else:
+        session["post_survey_loaded"] = True
+
+        user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
+        if not user.experiment_completed:
+            test_section = Section.query.filter_by(mturk_id=session["mturk_id"], section="testing").first()
+            compensation = round(.2*test_section.successes, 2)
+            session["compensation"] = compensation
+            completion_code = randint(1000000000, 9999999999)
+            session["completion_code"] = completion_code
+
+            user.experiment_completed = True
+            user.end_time = datetime.now()
+            user.compensation = compensation
+            user.completion_code = completion_code
+            db.session.commit()
+
+        return render_template("post_survey.html", completion_code=session["completion_code"], compensation=session["compensation"])
 
 if __name__ == "__main__":
     app.run(debug=True)
