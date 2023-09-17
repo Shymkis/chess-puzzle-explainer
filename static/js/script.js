@@ -70,7 +70,6 @@ function onDrop(source, target) {
   if (completed && num_mistakes == 0) successes++
   // log data
   let move_data = JSON.stringify({
-    user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
     move: move_string,
@@ -217,8 +216,6 @@ function nextPuzzle() {
 
 // undeclared vars
 let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
-// user vars
-let user_id = Math.floor(Math.random()*1000000)
 // timer vars
 let timer_display = $("#timer")
 let time_limit = 60*10

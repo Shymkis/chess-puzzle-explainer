@@ -95,6 +95,7 @@ class Survey(db.Model):
 class Puzzle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fen = db.Column(db.String(100))
+    order = db.Column(db.Integer)
     moves = db.Column(db.String(20))
     theme = db.Column(db.String(20))
     section = db.Column(db.String(20))
@@ -358,7 +359,7 @@ def get_puzzles():
     db.session.commit()
     session["section_id"] = sect.id
 
-    puzzle_rows = Puzzle.query.filter_by(section=session["section"]).all()
+    puzzle_rows = Puzzle.query.filter_by(section=session["section"]).order_by(Puzzle.order).all()
     puzzle_dicts = [row2dict(p) for p in puzzle_rows]
     return jsonify(puzzle_dicts)
 
@@ -409,7 +410,7 @@ def final_survey():
     elif Survey.query.filter_by(mturk_id=session["mturk_id"], type="final_survey").first():
         return redirect(url_for("clear_session_and_logout"))
     else:
-        session["demo_survey_loaded"] = True
+        session["final_survey_loaded"] = True
         return render_template("final_survey.html")
 
 @app.route("/final_survey/submit/", methods=["POST"])
