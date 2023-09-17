@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Final User Survey</title>
+    <style>
+        h1 {
+            text-align: center;
+            /* Center-align the title */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            /* Center content vertically */
+            align-items: center;
+            /* Center content horizontally */
+            height: 100vh;
+            /* Ensure the content takes the full viewport height */
+            margin: 0;
+            /* Remove default body margin */
+        }
+
+        .container {
+            text-align: left;
+            margin-top: 30px;
+            border: 2px solid #22f;
+            /* Frame border */
+            border-radius: 10px;
+            width: 80%;
+            /* Centered content container width */
+            max-width: 600px;
+            /* Limit the maximum width for better readability */
+            text-align: center;
+            /* Center-align the container content */
+        }
+
+        .question {
+            margin: 20px 0;
+            /* Increase margin to add more space between questions */
+            text-align: left;
+            /* Align the question text to the left */
+        }
+
+        .question-label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            /* Make the question label bold */
+        }
+
+        .question-options {
+            display: flex;
+            align-items: center;
+            /* Center align options horizontally */
+            margin: 10px;
+            text-align: center;
+            /* Center-align options */
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            /* Display label and input vertically */
+            margin-right: 20px;
+            /* Add space between options */
+            width: 20%;
+            height: 75px;
+            justify-content: end;
+        }
+
+        .option-label {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .text-box {
+            width: 100%;
+            /* Make text boxes take full width */
+            padding: 5px;
+        }
+
+        .task-button {
+            background-color: #ffffff;
+            color: black;
+            border: 2px solid #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .task-group {
+            border: 2px solid #aaf;
+            /* Frame border */
+            border-radius: 10px;
+            padding: 20px;
+            /* Add padding for spacing */
+            margin-bottom: 20px;
+            /* Add margin to separate question groups */
+        }
+    </style>
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Final User Survey</h1>
+        <p>Please carefully and thoughtfully complete all of the following questions.<br><br><b>You will NOT be
+                penalized for answering honestly; please answer truthfully for the integrity of our data.</b></p>
+                <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
+
+            <!-- Question Satisfaction Outcome 1 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I liked the outcome of today's task.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Outcome 2 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I feel satisfied with the things we achieved in completing
+                        today's puzzles.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Outcome 3 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">When the test was over, I felt satisfied with the
+                        results.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Outcome 4 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">Out accomplishments today give me a feeling of
+                        satisfaction.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Satisfaction Outcome 5 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I am happy with the results of today's outcome.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Agent/Explanations 1 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I was satisfied with my agent teammate.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Satisfaction Agent/Explanations 2 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">My agent teammate improved my experience.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Agent/Explanations 3 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">Interacting with my agent teammate was pleasant.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Satisfaction Agent/Explanations 4 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I enjoyed working with my agent teammate.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <!-- Question Satisfaction Agent/Explanations 5 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I found the collaboration with my agent teammate to be
+                        satisfactory.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Question Explanatory Power 1 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">The agent helped me understand the puzzles better.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Question Explanatory Power 2 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">Once I saw the agent's explanations, the puzzles became easier.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Explanatory Power 3 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I would not have understood the puzzles as well if the agent were not there to help.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Explanatory Power 4 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">The explanations from my agent were clear and helped me solve the puzzles.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Question Explanatory Power 5 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q1">I can better explain the solutions to the puzzles because of my agent teammate.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q1" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q1" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q1" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q1" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q1" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Attention Check 1 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q3">I am currently participating in a study about
+                        explanations. Please select "strongly agree".</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q3" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q3" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q3" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q3" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q3" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Question Attention Check 2 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q6">2 plus 2 is equal to 5.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q6" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q6" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q6" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q6" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q6" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Question Attention Check 3 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q4">The text on this page is primarily written using the Greek alphabet.</label>
+                    <div class="question-options">
+                        <div class="option">
+                            <label class="option-label">Strongly disagree:</label>
+                            <input type="radio" name="q4" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree:</label>
+                            <input type="radio" name="q4" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral:</label>
+                            <input type="radio" name="q4" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree:</label>
+                            <input type="radio" name="q4" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree:</label>
+                            <input type="radio" name="q4" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <button type="submit" class="button">Submit</button>
+        </form>
+    </div>
+    <script>
+        function validateForm() {
+            // Get all radio buttons with the name "qi" where i is the question number
+            for (let i = 1; i <= 6; i++) {
+                let radios = document.getElementsByName("q" + i);
+                let formValid = false;
+                let j = 0;
+                while (!formValid && j < radios.length) {
+                    if (radios[j].checked) formValid = true;
+                    j++;
+                }
+                if (!formValid) {
+                    alert("Please answer all questions before submitting.");
+                    return false; // Prevent form submission
+                }
+            }
+
+            // If all questions are answered, allow form submission
+            return true;
+        }
+    </script>
+</body>
+
+</html>
