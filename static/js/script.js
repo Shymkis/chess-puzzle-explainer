@@ -157,7 +157,23 @@ function onSnapEnd() {
 }
 
 function nextSection() {
-  section == "testing" ? location.replace("/survey/") : location.replace("/testing/")
+  let section_end = Date.now()
+  section_data = JSON.stringify({
+    end_time: section_end,
+    duration: section_end - section_start
+  })
+  $.ajax({
+    method: "POST",
+    url: "/log_section/",
+    contentType: "application/json",
+    data: section_data,
+    success: function(next_section) {
+      location.replace(next_section)
+    },
+    error: function(err) {
+      console.log(err)
+    }
+  })
 }
 
 function nextPuzzle() {
