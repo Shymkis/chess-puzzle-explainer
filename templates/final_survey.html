@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <title>Demographics Survey</title>
+    <title>Final Survey</title>
     <script>
         // Dynamically adjust the width of the radio buttons
         function adjustWidth() {
@@ -82,9 +82,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>Demographics Survey</h1>
+        <h1>Final User Survey</h1>
         <p>Please carefully and thoughtfully complete all of the following questions.</p>
-        <form id="preference-form" action="{{ url_for('demographics_survey_submit') }}" method="POST" onsubmit="return validateForm()">
+        <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
             <!-- Question 1: Age -->
             <div class="task-group" id="q1">
                 <div class="question">
@@ -229,25 +229,6 @@
                         <div class="options">
                             <label class="option-label">Strongly Agree:</label>
                             <input type="radio" name="q5" value="5">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="task-group" id="q6">
-                <div class="question">
-                    <label class="question-label" for="q6">What is your chess skill level?</label>
-                    <div class="question-options">
-                        <div class="options">
-                            <label class="option-label">Beginner:</label>
-                            <input type="radio" name="q6" value="Beginner">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Intermediate:</label>
-                            <input type="radio" name="q6" value="Intermediate">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Expert:</label>
-                            <input type="radio" name="q6" value="Expert">
                         </div>
                     </div>
                 </div>

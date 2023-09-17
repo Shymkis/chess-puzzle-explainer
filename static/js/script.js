@@ -70,11 +70,8 @@ function onDrop(source, target) {
   if (completed && num_mistakes == 0) successes++
   // log data
   let move_data = JSON.stringify({
-    user_id: user_id,
     puzzle_id: puzzles[puzzle_num]["id"],
     move_num: move_num,
-    section: section,
-    protocol: protocol,
     move: move_string,
     move_start: move_start,
     move_end: move_end,
@@ -89,30 +86,32 @@ function onDrop(source, target) {
     puzzles: completed ? puzzle_num + 1 : puzzle_num
   })
   $.ajax({
-    url: "/user_move",
+    url: "/log_move/",
     type: "POST",
     contentType: "application/json",
     data: move_data,
     success: function(data) {
+      console.log("HERE")
       // explain move
-      if (data !== null) {
+      if (!explained_move && data !== null) {
         let last_message = chat_display.find("p").last()
         last_message.after("<p>" + data["reason"] + "</p>")
         let t = chat_display.find(".time").last()
         t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
         scrollChat()
+        explained_move = true
       }
       // undo wrong move
       if (mistake) {
-        console.log(game)
         game.undo()
-        console.log(game)
         move_start = Date.now()
         return "snapback"
       }
       // make next puzzle move after correct move
       move_num++
-      if (!completed) setTimeout(makePuzzleMove, 250)
+      explained_move = false
+      // if (!completed) setTimeout(makePuzzleMove, 250)
+      if (!completed) makePuzzleMove()
     },
     error: function(err) {
       console.log(err)
@@ -156,12 +155,29 @@ function onSnapEnd() {
     scrollChat()
     
     puzzle_num++
-    setTimeout(nextPuzzle, 500)
+    // setTimeout(nextPuzzle, 500)
+    nextPuzzle()
   }
 }
 
 function nextSection() {
-  section == "testing" ? location.replace("/survey") : location.replace("/testing")
+  let section_end = Date.now()
+  section_data = JSON.stringify({
+    end_time: section_end,
+    duration: section_end - section_start
+  })
+  $.ajax({
+    method: "POST",
+    url: "/log_section/",
+    contentType: "application/json",
+    data: section_data,
+    success: function(next_section) {
+      location.replace(next_section)
+    },
+    error: function(err) {
+      console.log(err)
+    }
+  })
 }
 
 function nextPuzzle() {
@@ -205,8 +221,6 @@ function nextPuzzle() {
 
 // undeclared vars
 let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
-// user vars
-let user_id = Math.floor(Math.random()*1000000)
 // timer vars
 let timer_display = $("#timer")
 let time_limit = 60*10
@@ -218,13 +232,13 @@ let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', redSquare
 let puzzle_num = 0, successes = 0, num_moves = 0
 // chat vars
 let chat_display = $("#chat")
+let explained_move = false
 
-// get first section
+// get section's puzzles
 $.ajax({
   method: "POST",
-  url: "/get_puzzles",
+  url: "/get_puzzles/",
   contentType: "application/json",
-  data: JSON.stringify(section),
   success: function(data) {
     puzzles = data
     if (section == "testing") {

@@ -32,8 +32,7 @@
   <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script>
-    var section = {{ section|tojson }};
-    var protocol = {{ protocol|tojson }};
+    var section = {{ section|tojson }}
   </script>
 </body>
 </html>
