@@ -110,8 +110,7 @@ function onDrop(source, target) {
       // make next puzzle move after correct move
       move_num++
       explained_move = false
-      // if (!completed) setTimeout(makePuzzleMove, 250)
-      if (!completed) makePuzzleMove()
+      if (!completed) setTimeout(makePuzzleMove, 250)
     },
     error: function(err) {
       console.log(err)
@@ -155,8 +154,7 @@ function onSnapEnd() {
     scrollChat()
     
     puzzle_num++
-    // setTimeout(nextPuzzle, 500)
-    nextPuzzle()
+    setTimeout(nextPuzzle, 500)
   }
 }
 
