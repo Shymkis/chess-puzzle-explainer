@@ -91,13 +91,15 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
+      console.log("HERE")
       // explain move
-      if (data !== null) {
+      if (!explained_move && data !== null) {
         let last_message = chat_display.find("p").last()
         last_message.after("<p>" + data["reason"] + "</p>")
         let t = chat_display.find(".time").last()
         t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
         scrollChat()
+        explained_move = true
       }
       // undo wrong move
       if (mistake) {
@@ -107,7 +109,9 @@ function onDrop(source, target) {
       }
       // make next puzzle move after correct move
       move_num++
-      if (!completed) setTimeout(makePuzzleMove, 250)
+      explained_move = false
+      // if (!completed) setTimeout(makePuzzleMove, 250)
+      if (!completed) makePuzzleMove()
     },
     error: function(err) {
       console.log(err)
@@ -151,7 +155,8 @@ function onSnapEnd() {
     scrollChat()
     
     puzzle_num++
-    setTimeout(nextPuzzle, 500)
+    // setTimeout(nextPuzzle, 500)
+    nextPuzzle()
   }
 }
 
@@ -227,6 +232,7 @@ let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', redSquare
 let puzzle_num = 0, successes = 0, num_moves = 0
 // chat vars
 let chat_display = $("#chat")
+let explained_move = false
 
 // get section's puzzles
 $.ajax({

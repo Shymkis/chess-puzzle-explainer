@@ -1,4 +1,3 @@
-import sqlite3
 from flask import Flask, flash, g, render_template, request, session, jsonify, url_for, redirect, current_app
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +9,6 @@ from sqlalchemy import JSON
 from random import choice, randint
 from datetime import datetime, timedelta
 
-DATABASE = "./static/data/database.db"
 PROTOCOLS = ["none", "placebic", "actionable"]
 
 # forms.py
@@ -135,24 +133,8 @@ class Move(db.Model):
 def load_user(user_id):
     return User.query.get(user_id)
 
-def make_dicts(cursor, row):
-    return {cursor.description[i][0]: v for i, v in enumerate(row)}
-
 def row2dict(r):
     return {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
-
-def get_db():
-    db = getattr(g, "_database", None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-    db.row_factory = make_dicts
-    return db
-
-def query_db(query, args=(), one=False, con=None):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
-    cur.close()
-    return (rv[0] if rv else None) if one else rv
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -252,6 +234,7 @@ def consent_submit():
             
             # Assign a random intervention condition
             session["protocol"] = choice(PROTOCOLS)
+            session["protocol"] = "none"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -371,6 +354,11 @@ def log_move():
         puzzle_id=data["puzzle_id"], move_num=data["move_num"],
         protocol=session["protocol"], move=data["move"]
     ).first()
+    if not exp_row:
+        exp_row = Explanation.query.filter_by(
+            puzzle_id=data["puzzle_id"], move_num=data["move_num"],
+            protocol=session["protocol"], move="other"
+        ).first()
     exp_dict = row2dict(exp_row) if exp_row else None
 
     sect = Section.query.get(session["section_id"])
