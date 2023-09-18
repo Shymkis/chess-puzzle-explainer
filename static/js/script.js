@@ -12,11 +12,20 @@ function removeGreySquares() {
   $('#board .square-55d63').css('background', '')
 }
 
+function removeRedSquares() {
+  $('#board .square-55d63').css('box-shadow', '')
+}
+
 function greySquare(square) {
   let square_display = $('#board .square-' + square)
   let background = whiteSquareGrey
   if (square_display.hasClass('black-3c85d')) background = blackSquareGrey
   square_display.css('background', background)
+}
+
+function redSquare(square) {
+  let square_display = $('#board .square-' + square)
+  square_display.css('box-shadow', 'inset 0 0 3px 3px' + squareRed)
 }
 
 function makePuzzleMove() {
@@ -99,6 +108,10 @@ function onDrop(source, target) {
         t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
         scrollChat()
         explained_move = true
+        if (section == "practice" && mistake) {
+          redSquare(moves[move_num].slice(0,2))
+          redSquare(moves[move_num].slice(-2))
+        }
       }
       // undo wrong move
       if (mistake) {
@@ -109,6 +122,7 @@ function onDrop(source, target) {
       // make next puzzle move after correct move
       move_num++
       explained_move = false
+      removeRedSquares()
       if (!completed) setTimeout(makePuzzleMove, 250)
     },
     error: function(err) {
@@ -224,7 +238,7 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 // board vars
-let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', redSquare
+let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', squareRed = '#f00'
 // section vars
 let puzzle_num = 0, successes = 0, num_moves = 0
 // chat vars
