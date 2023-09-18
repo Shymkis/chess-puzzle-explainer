@@ -103,7 +103,7 @@ class Explanation(db.Model):
     puzzle_id = db.Column(db.Integer, db.ForeignKey("puzzle.id"))
     move_num = db.Column(db.Integer)
     protocol = db.Column(db.String(20))
-    move = db.Column(db.String(5))
+    mistake = db.Column(db.Boolean)
     reason = db.Column(db.String(200))
 
 class Section(db.Model):
@@ -234,6 +234,7 @@ def consent_submit():
             
             # Assign a random intervention condition
             session["protocol"] = choice(PROTOCOLS)
+            session["protocol"] = "placebic"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -360,13 +361,8 @@ def log_move():
     data = request.get_json()
     exp_row = Explanation.query.filter_by(
         puzzle_id=data["puzzle_id"], move_num=data["move_num"],
-        protocol=session["protocol"], move=data["move"]
+        protocol=session["protocol"], mistake=data["mistake"]
     ).first()
-    if not exp_row:
-        exp_row = Explanation.query.filter_by(
-            puzzle_id=data["puzzle_id"], move_num=data["move_num"],
-            protocol=session["protocol"], move="other"
-        ).first()
     exp_dict = row2dict(exp_row) if exp_row else None
 
     sect = Section.query.get(session["section_id"])
@@ -463,7 +459,11 @@ def post_survey():
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         if not user.experiment_completed:
             test_section = Section.query.filter_by(mturk_id=session["mturk_id"], section="testing").first()
-            compensation = round(.2*test_section.successes, 2)
+            base_comp = 2.5
+            session["base_comp"] = base_comp
+            bonus_comp = round(.2*test_section.successes, 2)
+            session["bonus_comp"] = bonus_comp
+            compensation = base_comp + bonus_comp
             session["compensation"] = compensation
             completion_code = randint(1000000000, 9999999999)
             session["completion_code"] = completion_code
@@ -474,7 +474,7 @@ def post_survey():
             user.completion_code = completion_code
             db.session.commit()
 
-        return render_template("post_survey.html", completion_code=session["completion_code"], compensation=session["compensation"])
+        return render_template("post_survey.html", completion_code=session["completion_code"], base_comp=session["base_comp"], bonus_comp=session["bonus_comp"])
 
 if __name__ == "__main__":
     app.run(debug=True)

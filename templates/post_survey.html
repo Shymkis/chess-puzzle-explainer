@@ -35,10 +35,10 @@
     <br>
     <br>
     <p class="h6">
-        Base Compensation: <mark> $2.50 </mark>
+        Base Compensation: <mark> {{ "$%.2f"|format(base_comp) }} </mark>
     </p>
     <p class="h6">
-        Bonus Compensation: <mark> {{ "$%.2f"|format(compensation) }} </mark>
+        Bonus Compensation: <mark> {{ "$%.2f"|format(bonus_comp) }} </mark>
     </p>
     <p class="h6">
         Completion Code: <mark> {{ completion_code }} </mark>
