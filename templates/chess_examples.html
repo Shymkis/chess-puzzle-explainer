@@ -39,14 +39,18 @@
             <div>
                 <img src="{{ url_for('static', filename='img/fork_example.png') }}" alt="fork" width="200" height="200">
             </div>
-            <p>A fork</p>
+            <p>A fork is a tactic in which a piece attacks multiple enemy pieces simultaneously. The defender often cannot counter both threats. In this example, the knight move to C7 forks the rook on A8 and the king on E8. The king must escape the attack, leaving the rook vulnerable to the knight's attack.</p>
         </div>
         <div class="column" style="background-color:#FFD2A5;">
             <h2>Pin</h2>
             <div>
                 <img src="{{ url_for('static', filename='img/pin_example.png') }}" alt="pin" width="200" height="200">
             </div>
-            <p>A pin is a move in chess that causes the opponent to bla bla bla</p>
+            <p>A pin is a tactic in which a defending piece cannot move out of an attacking piece's line of attack without exposing a more valuable piece. In this example, the bishop on B5 pins the rook on D7 to the king on E8. The rook cannot escape the bishop since it is blocking the bishop's attack on the king. In addition, the bishop on G5 pins the knight on F6 to the queen on E7. The knight cannot escape the bishop's attack without allowing the bishop to take the more valuable queen.</p>
+        </div>
+        <div class="row">
+            <p><a href="/practice/{{ protocol }}">Click to begin practice puzzles. </a> </p>
+        </div>
     </div>
 </body>
 </html>
