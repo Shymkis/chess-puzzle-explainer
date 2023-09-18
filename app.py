@@ -234,7 +234,6 @@ def consent_submit():
             
             # Assign a random intervention condition
             session["protocol"] = choice(PROTOCOLS)
-            session["protocol"] = "none"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -415,13 +414,21 @@ def final_survey_submit():
         
         # Get data from the form as a dictionary
         final_survey = {}
-        final_survey["age"] = request.form.get("q1")
-        final_survey["gender"] = request.form.get("q2")
-        final_survey["ethnicity"] = request.form.get("q3")
-        final_survey["education"] = request.form.get("q4")
-        final_survey["attention-check"] = request.form.get("q5")
+        final_survey["sat-outcome-1"] = request.form.get("q11")
+        final_survey["sat-outcome-2"] = request.form.get("q12")
+        final_survey["sat-outcome-3"] = request.form.get("q13")
+        final_survey["sat-agent-1"] = request.form.get("q21")
+        final_survey["sat-agent-2"] = request.form.get("q22")
+        final_survey["sat-agent-3"] = request.form.get("q23")
+        final_survey["exp-power-1"] = request.form.get("q31")
+        final_survey["exp-power-2"] = request.form.get("q32")
+        final_survey["exp-power-3"] = request.form.get("q33")
+        final_survey["attention-check-1"] = request.form.get("q41")
+        final_survey["attention-check-2"] = request.form.get("q42")
         
-        if final_survey["attention-check"] != "4":
+        if final_survey["attention-check-1"] != "5":
+            session["failed_attention_checks"] += 1
+        if final_survey["attention-check-2"] not in ["1", "2"]:
             session["failed_attention_checks"] += 1
         print("Failed attention checks: " + str(session["failed_attention_checks"]))
         

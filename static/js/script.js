@@ -91,7 +91,6 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
-      console.log("HERE")
       // explain move
       if (!explained_move && data !== null) {
         let last_message = chat_display.find("p").last()
@@ -243,7 +242,7 @@ $.ajax({
       timer_display.parent().prepend("Testing time remaining: ")
       chat_display.append(`
         <div class="received-msg">
-          <p>Test your skills on these new puzzles without any explanations from me.</p>
+          <p>Test your skills on these new puzzles without any explanations from me. If you make a wrong move, keep trying until you find the right one.</p>
           <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
         </div>
       `)
