@@ -92,7 +92,7 @@ function onDrop(source, target) {
     data: move_data,
     success: function(data) {
       // explain move
-      if (!explained_move && data !== null) {
+      if ((!explained_move || (section == "testing" && !mistake)) && data !== null) {
         let last_message = chat_display.find("p").last()
         last_message.after("<p>" + data["reason"] + "</p>")
         let t = chat_display.find(".time").last()

@@ -292,7 +292,16 @@ def demographics_survey_submit():
         db.session.add(survey)
         db.session.commit()
         
-        return redirect(url_for("practice"))
+        return redirect(url_for("chess_examples"))
+
+@app.route("/chess_examples/")
+@login_required
+def chess_examples():
+    if not current_user.is_authenticated or not session.get("consent") == True:
+        print("User not authenticated or consented.")
+        return redirect(url_for("login"))
+
+    return render_template("chess_examples.html")
 
 @app.route("/practice/")
 @login_required
