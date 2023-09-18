@@ -120,40 +120,6 @@
         <p class="h6">Bonus Compensation: <mark>{{ "$%.2f"|format(bonus_comp) }}</mark></p>
         <p class="h6">Completion Code: <mark>{{ completion_code }}</mark></p>
         <br><br>
-        <p class="h5" style="padding-left: 10px">Thank you!</p>
-        <br>
-        <h1>Feedback</h1>
-        <p>Please submit your HIT code before completing this survey. You will NOT be penalized in any way for your answers.</b></p>
-        <form id="preference-form" action="{{ url_for('post_survey_submit') }}" method="POST" onsubmit="return validateForm()">
-
-            <!-- Question 1 (with a text box) -->
-            <div class="task-group">
-                <div class="question">
-                    <label class="question-label" for="q1">Please provide any feedback you have about this study (comments, critiques, ways to improve, things that confused you, etc.):</label>
-                    <div class="question-options">
-                        <input type="text" name="feedback" id="q1" class="text-box" placeholder="Enter your answer here...">
-                    </div>
-                </div>
-            </div>
-
-
-            <button type="submit" class="button">Submit</button>
-        </form>
-    </div>
-    <script>
-        function validateForm() {
-            // Get the value of the text box for question 1
-            let q1Input = document.getElementById("q1").value.trim();
-        
-            // Check if the text box is empty
-            if (q1Input === "") {
-                alert("Please answer the question before submitting.");
-                return false; // Prevent form submission
-            }
-        
-            // If the text box has a value, allow form submission
-            return true;
-        }
-    </script>
+        <p>Thank you for your feedback!</p>
 </body>
 </html>

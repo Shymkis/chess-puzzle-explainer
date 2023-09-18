@@ -136,12 +136,6 @@ def load_user(user_id):
 def row2dict(r):
     return {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, "_database", None)
-    if db is not None:
-        db.close()
-
 # vvv   APP ROUTES   vvv
 
 # Utility function to clear session data and logout
@@ -202,6 +196,7 @@ def login():
             session["login_completed"] = True
             session["login_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             session["expiry_time"] = (datetime.now() + timedelta(minutes=45)).strftime("%Y-%m-%d %H:%M:%S")
+            session["experiment_completed"] = False
 
             return redirect(url_for("consent"))
         else:
@@ -445,12 +440,14 @@ def final_survey_submit():
         )
         db.session.add(survey)
         db.session.commit()
+
+        session["experiment_completed"] = True
         
         return redirect(url_for("post_survey"))
 
 @app.route("/post_survey/", methods=["GET", "POST"])
 def post_survey():
-    if not current_user.is_authenticated or not session.get("consent"):
+    if not current_user.is_authenticated or not session.get("consent") or not session.get("experiment_completed"):
         return redirect(url_for("clear_session_and_logout"))
     else:
         session["post_survey_loaded"] = True
@@ -474,6 +471,34 @@ def post_survey():
             db.session.commit()
 
         return render_template("post_survey.html", completion_code=session["completion_code"], base_comp=session["base_comp"], bonus_comp=session["bonus_comp"])
+
+@app.route("/post_survey/submit/", methods=["POST"])
+def post_survey_submit():
+    if not current_user.is_authenticated or not session.get("consent"):
+        return redirect(url_for("clear_session_and_logout"))
+    
+    # Check if the form was already submitted
+    if Survey.query.filter_by(mturk_id=session["mturk_id"], type="feedback").first():
+        return redirect(url_for("clear_session_and_logout"))
+    
+    if request.method == "POST":
+        feedback = request.form.get("feedback")
+        survey = Survey(
+            mturk_id = session["mturk_id"],
+            type = "feedback",
+            data = feedback,
+            timestamp = datetime.now()
+        )
+        db.session.add(survey)
+        db.session.commit()
+
+        return redirect(url_for("thanks"))
+
+@app.route("/thanks/")
+def thanks():
+    if not current_user.is_authenticated or not session.get("consent") or not session.get("experiment_completed"):
+        return redirect(url_for("clear_session_and_logout"))
+    return render_template("thanks.html", completion_code=session["completion_code"], base_comp=session["base_comp"], bonus_comp=session["bonus_comp"])
 
 if __name__ == "__main__":
     app.run(debug=True)
