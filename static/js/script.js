@@ -117,18 +117,19 @@ function onDrop(source, target) {
       if (mistake) {
         game.undo()
         move_start = Date.now()
-        return "snapback"
+      } else {
+        // make next puzzle move after correct move
+        move_num++
+        explained_move = false
+        removeRedSquares()
+        if (!completed) setTimeout(makePuzzleMove, 250)
       }
-      // make next puzzle move after correct move
-      move_num++
-      explained_move = false
-      removeRedSquares()
-      if (!completed) setTimeout(makePuzzleMove, 250)
     },
     error: function(err) {
       console.log(err)
     }
   })
+  if (mistake) return "snapback"
 }
 
 function onMouseoverSquare (square, piece) {
@@ -157,7 +158,7 @@ function onMouseoutSquare (square, piece) {
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
 function onSnapEnd() {
-  board.position(game.fen())
+  // board.position(game.fen())
 
   if (completed) {
     let last_message = chat_display.find("p").last()
