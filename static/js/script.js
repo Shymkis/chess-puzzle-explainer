@@ -35,6 +35,41 @@ function makePuzzleMove() {
   move_start = Date.now()
 }
 
+function typing() {
+  dots = dots == "..." ? "." : dots + "."
+  cur_message.text(dots)
+}
+
+function explain(mistake, reason) {
+  // create message space
+  let last_message = chat_display.find("p").last()
+  dots = "."
+  last_message.after("<p>" + dots + "</p>")
+  cur_message = last_message.next()
+  scrollChat()
+
+  // typing animation
+  typing_interval = setInterval(typing, 200)
+
+  setTimeout(function() {
+    // stop typing
+    clearInterval(typing_interval)
+    
+    // show explanation
+    cur_message.text(reason)
+    let t = chat_display.find(".time").last()
+    t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+    scrollChat()
+
+    // show move
+    if (section == "practice" && mistake) {
+      redSquare(moves[move_num].slice(0,2))
+      redSquare(moves[move_num].slice(-2))
+    }
+  }, reason.length*7)
+  explained_move = true
+}
+
 function scrollChat() {
   let scroll_height = 0
   chat_display.children().each(function() { scroll_height += $(this).height() })
@@ -101,18 +136,7 @@ function onDrop(source, target) {
     data: move_data,
     success: function(data) {
       // explain move
-      if ((!explained_move || (section == "testing" && !mistake)) && data !== null) {
-        let last_message = chat_display.find("p").last()
-        last_message.after("<p>" + data["reason"] + "</p>")
-        let t = chat_display.find(".time").last()
-        t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
-        scrollChat()
-        explained_move = true
-        if (section == "practice" && mistake) {
-          redSquare(moves[move_num].slice(0,2))
-          redSquare(moves[move_num].slice(-2))
-        }
-      }
+      if ((!explained_move || (section == "testing" && !mistake)) && data !== null) explain(mistake, data["reason"])
       // undo wrong move
       if (mistake) {
         game.undo()
@@ -184,6 +208,7 @@ function nextSection() {
     contentType: "application/json",
     data: section_data,
     success: function(next_section) {
+      alert("Now entering the Testing section!")
       location.replace(next_section)
     },
     error: function(err) {
@@ -232,7 +257,7 @@ function nextPuzzle() {
 }
 
 // undeclared vars
-let board, completed, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
+let board, completed, cur_message, dots, fen, game, move_num, move_start, move_string, moves, num_mistakes, player_c, player_color, puzzles, rating, section_start, theme
 // timer vars
 let timer_display = $("#timer")
 let time_limit = 60*10
