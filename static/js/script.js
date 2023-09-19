@@ -257,7 +257,7 @@ $.ajax({
       timer_display.parent().prepend("Testing time remaining: ")
       chat_display.append(`
         <div class="received-msg">
-          <p>Test your skills on these new puzzles without any explanations from me. If you make a wrong move, keep trying until you find the right one.</p>
+          <p>Test your skills on these new puzzles without any explanations from me. If you make a wrong move, keep trying until you find the right one. <b>You will be rewarded for the number of puzzles you complete without any mistakes.</b></p>
           <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
         </div>
       `)
