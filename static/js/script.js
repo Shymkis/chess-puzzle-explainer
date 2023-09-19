@@ -72,7 +72,7 @@ function explain(mistake, reason) {
       redSquare(moves[move_num].slice(0,2))
       redSquare(moves[move_num].slice(-2))
     }
-  }, reason.length*7)
+  }, reason.length*6)
   explained_move = true
 }
 
@@ -186,7 +186,17 @@ function onSnapEnd() {
 
   if (completed) {
     let last_message = chat_display.find("p").last()
-    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed.</p>`)
+    let qualifier = ""
+    if (section == "testing") {
+      if (num_mistakes > 1) {
+        qualifier = " with mistakes"
+      } else if (num_mistakes == 1) {
+        qualifier = " with a mistake"
+      } else {
+        qualifier = " successfully"
+      }
+    }
+    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed` + qualifier + `.</p>`)
     let t = chat_display.find(".time").last()
     t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
     scrollChat()
@@ -208,7 +218,7 @@ function nextSection() {
     contentType: "application/json",
     data: section_data,
     success: function(next_section) {
-      if(next_section == "testing") alert("Now entering the Testing section!")
+      if (section == "practice") alert("Now entering the Testing section!")
       location.replace(next_section)
     },
     error: function(err) {
