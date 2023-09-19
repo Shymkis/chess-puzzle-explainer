@@ -35,6 +35,12 @@ function makePuzzleMove() {
   move_start = Date.now()
 }
 
+function scrollChat() {
+  let scroll_height = 0
+  chat_display.children().each(function() { scroll_height += $(this).height() })
+  chat_display.animate({ scrollTop: scroll_height })
+}
+
 function typing() {
   dots = dots == "..." ? "." : dots + "."
   cur_message.text(dots)
@@ -68,12 +74,6 @@ function explain(mistake, reason) {
     }
   }, reason.length*7)
   explained_move = true
-}
-
-function scrollChat() {
-  let scroll_height = 0
-  chat_display.children().each(function() { scroll_height += $(this).height() })
-  chat_display.animate({ scrollTop: scroll_height })
 }
 
 function onDragStart(source, piece, position, orientation) {
@@ -208,7 +208,7 @@ function nextSection() {
     contentType: "application/json",
     data: section_data,
     success: function(next_section) {
-      alert("Now entering the Testing section!")
+      if(next_section == "testing") alert("Now entering the Testing section!")
       location.replace(next_section)
     },
     error: function(err) {
