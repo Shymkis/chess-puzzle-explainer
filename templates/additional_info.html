@@ -29,6 +29,9 @@
             min-height: 100vh;
             background-color: #f7f7f7;
         }
+        p {
+            text-align: left;
+        }
         .container {
             text-align: left;
             margin-top: 30px;
@@ -47,10 +50,15 @@
             <h1>Additional Information</h1>
             <p>
                 You are tasked with making the best chess moves given different board configurations, called puzzles.
-                An <b>AI agent</b> will chat with you using the dialogue box on the right.
-                This teammate will guide you through the study, offering help on the practice puzzles to prepare you for the test puzzles.
-                In all of the puzzles, you will control the <b>white</b> pieces.
-                Additionally, here is a description of two common chess tactics which may occur within the puzzles.
+                An <b>AI agent</b> will find the best moves for each board state and chat with you using the dialogue box on the right to guide you through the study.
+            </p>
+            <p>
+                You will first attempt to solve 10 practice puzzles in 10 minutes with the help of your AI teammate.
+                Then you will be tested on 5 additional puzzles without your teammate's explanations.
+            </p>
+            <p>
+                In all of the puzzles, you will control the <b>white</b> pieces. The agent will move the black pieces.
+                Additionally, here is a description of two common chess tactics which may occur within the puzzles:
             </p>
             <div class="column" style="background-color:#FFB695;">
                 <h2>Fork</h2>
@@ -74,7 +82,7 @@
                 </p>
             </div>
             <div class="row">
-                <p><a href="{{ url_for('practice') }}">Click to begin practice puzzles. </a> </p>
+                <a href="{{ url_for('practice') }}">Click to begin practice puzzles.</a>
             </div>
         </div>
     </div>
