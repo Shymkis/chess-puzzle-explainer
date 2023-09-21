@@ -85,6 +85,21 @@ function onDragStart(source, piece, position, orientation) {
 
   // only pick up pieces for player color
   if (!piece.startsWith(player_c)) return false
+
+  removeGreySquares()
+  // get list of possible moves for this square
+  let legal_moves = game.moves({
+    square: source,
+    verbose: true
+  })
+  // exit if there are no moves available for this square
+  if (legal_moves.length === 0) return
+  // highlight the square they moused over
+  greySquare(source)
+  // highlight the possible squares for this piece
+  for (let i = 0; i < legal_moves.length; i++) {
+    greySquare(legal_moves[i].to)
+  }
 }
 
 function onDrop(source, target) {
