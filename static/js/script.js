@@ -135,10 +135,12 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
+      // pulse previous explanation for repeated mistakes
+      if (explained_move && mistake) chat_display.find("p").last().fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100)
       // explain move
       if ((!explained_move || (section == "testing" && !mistake)) && data !== null) explain(mistake, data["reason"])
-      // undo wrong move
       if (mistake) {
+        // undo wrong move
         game.undo()
         move_start = Date.now()
       } else {
