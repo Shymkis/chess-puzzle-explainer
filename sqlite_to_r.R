@@ -105,17 +105,32 @@ moves %>% filter(mturk_id %in% dropped_ids)
 final_surveys %>% filter(mturk_id %in% dropped_ids)
 feedback %>% filter(mturk_id %in% dropped_ids)
 
+#### Compensation Check ####
+
+users %>% select(mturk_id, completion_code, compensation, end_time)
+
 #### Performance Results ####
 
-sections %>% filter(section=="practice") %>% select(successes)
-sections %>% filter(section=="testing") %>% select(successes)
+sections.results <- function(sect, metric) {
+  sections %>% 
+    inner_join(users, join_by(mturk_id)) %>% 
+    filter(experiment_completed == T, section == sect) %>% 
+    ggplot(aes(x = protocol.y, y = {{metric}})) + geom_boxplot() + ggtitle(sect)
+}
+sections.results("practice", successes)
+sections.results("practice", duration)
+sections.results("testing", successes)
+sections.results("testing", duration)
 
 #### Final Survey Stats ####
 
-final_surveys %>% select(starts_with("sat.outcome")) %>% unlist() %>% summary()
-final_surveys %>% select(starts_with("sat.agent")) %>% unlist() %>% summary()
-final_surveys %>% select(starts_with("exp.power")) %>% unlist() %>% summary()
-
-#### Compensation Check ####
-
-users %>% select(mturk_id, completion_code, compensation)
+final_surveys.boxplot <- function(metric) {
+  final_surveys %>% 
+    inner_join(users, join_by(mturk_id)) %>% 
+    filter(experiment_completed == T) %>% 
+    mutate(metric = select(., starts_with(metric)) %>% rowSums()/3) %>% 
+    ggplot(aes(x = protocol, y = metric)) + geom_boxplot() + ylab(metric)
+}
+final_surveys.boxplot("sat.outcome")
+final_surveys.boxplot("sat.agent")
+final_surveys.boxplot("exp.power")
