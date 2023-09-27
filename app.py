@@ -229,7 +229,7 @@ def consent_submit():
             
             # Assign a random intervention condition
             # session["protocol"] = choice(PROTOCOLS)
-            session["protocol"] = "actionable"
+            session["protocol"] = "placebic"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]

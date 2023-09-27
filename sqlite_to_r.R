@@ -14,15 +14,16 @@ get_table_dfs <- function(db_filepath) {
   for (i in seq(along=tables)) {
     t_dfs[[i]] <- dbGetQuery(conn=con, statement=paste("SELECT * FROM '", tables[[i]], "'", sep=""))
   }
+  dbDisconnect(con)
   return(t_dfs)
 }
 
-get_survey_dfs <- function(survey_table) {
-  types <- unique(table_dfs$survey$type)
+get_survey_dfs <- function(raw_surveys) {
+  types <- unique(raw_surveys$type)
   s_dfs <- vector("list", length=length(types))
   names(s_dfs) <- types
   for (i in seq(along=types)) {
-    old_survey_df <- table_dfs$survey[table_dfs$survey$type == types[[i]], ]
+    old_survey_df <- raw_surveys[raw_surveys$type == types[[i]], ]
     new_survey_df <- old_survey_df %>% 
       rowwise() %>%
       do(data.frame(fromJSON(.$data, flatten = T))) %>%
@@ -33,6 +34,8 @@ get_survey_dfs <- function(survey_table) {
   return(s_dfs)
 }
 
+start_date = as.POSIXct("2023-09-25")
+
 #### Obtain and clean SQLite table data frames ####
 
 table_dfs <- get_table_dfs("application.db")
@@ -40,7 +43,7 @@ table_dfs <- get_table_dfs("application.db")
 explanations <- table_dfs$explanation
 explanations$protocol <- explanations$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 
-moves <- table_dfs$move
+moves <- table_dfs$move %>% filter(start_time > start_date)
 moves$start_time <- moves$start_time %>% as.POSIXct()
 moves$end_time <- moves$end_time %>% as.POSIXct()
 moves$mistake <- moves$mistake %>% as.logical()
@@ -48,16 +51,16 @@ moves$mistake <- moves$mistake %>% as.logical()
 puzzles <- table_dfs$puzzle
 puzzles$theme <- puzzles$theme %>% as.factor()
 
-sections <- table_dfs$section
+sections <- table_dfs$section %>% filter(start_time > start_date)
 sections$section <- sections$section %>% as.factor()
 sections$protocol <- sections$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 sections$start_time <- sections$start_time %>% as.POSIXct()
 sections$end_time <- sections$end_time %>% as.POSIXct()
 
-surveys <- table_dfs$survey
-table_dfs$survey$timestamp <- surveys$timestamp %>% as.POSIXct()
+surveys <- table_dfs$survey %>% filter(timestamp > start_date)
+surveys$timestamp <- surveys$timestamp %>% as.POSIXct()
 
-users <- table_dfs$user
+users <- table_dfs$user %>% filter(start_time > start_date)
 users$experiment_completed <- users$experiment_completed %>% as.logical()
 users$failed_attention_checks <- users$failed_attention_checks %>% as.logical()
 users$start_time <- users$start_time %>% as.POSIXct()
@@ -87,9 +90,22 @@ final_surveys$exp.power.1 <- final_surveys$exp.power.1 %>% as.integer()
 final_surveys$exp.power.2 <- final_surveys$exp.power.2 %>% as.integer()
 final_surveys$exp.power.3 <- final_surveys$exp.power.3 %>% as.integer()
 final_surveys$attention.check.1 <- final_surveys$attention.check.1 %>% as.integer()
-final_surveys$attention.check.1 <- final_surveys$attention.check.2 %>% as.integer()
+final_surveys$attention.check.2 <- final_surveys$attention.check.2 %>% as.integer()
 
 feedback <- survey_dfs$feedback
 names(feedback)[1] <- "text"
 
-#### Graphs ####
+#### Performance Results ####
+
+sections %>% filter(section=="practice") %>% select(successes)
+sections %>% filter(section=="testing") %>% select(successes)
+
+#### Final Survey Means ####
+
+final_surveys %>% select(starts_with("sat.outcome")) %>% unlist() %>% summary()
+final_surveys %>% select(starts_with("sat.agent")) %>% unlist() %>% summary()
+final_surveys %>% select(starts_with("exp.power")) %>% unlist() %>% summary()
+
+#### Compensation Check ####
+
+users %>% select(mturk_id, completion_code, compensation)
