@@ -43,7 +43,7 @@ table_dfs <- get_table_dfs("application.db")
 explanations <- table_dfs$explanation
 explanations$protocol <- explanations$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 
-moves <- table_dfs$move %>% filter(start_time > start_date)
+moves <- table_dfs$move %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
 moves$start_time <- moves$start_time %>% as.POSIXct()
 moves$end_time <- moves$end_time %>% as.POSIXct()
 moves$mistake <- moves$mistake %>% as.logical()
@@ -51,16 +51,16 @@ moves$mistake <- moves$mistake %>% as.logical()
 puzzles <- table_dfs$puzzle
 puzzles$theme <- puzzles$theme %>% as.factor()
 
-sections <- table_dfs$section %>% filter(start_time > start_date)
+sections <- table_dfs$section %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
 sections$section <- sections$section %>% as.factor()
 sections$protocol <- sections$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 sections$start_time <- sections$start_time %>% as.POSIXct()
 sections$end_time <- sections$end_time %>% as.POSIXct()
 
-surveys <- table_dfs$survey %>% filter(timestamp > start_date)
+surveys <- table_dfs$survey %>% filter(timestamp > start_date, mturk_id %>% startsWith("A"))
 surveys$timestamp <- surveys$timestamp %>% as.POSIXct()
 
-users <- table_dfs$user %>% filter(start_time > start_date)
+users <- table_dfs$user %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
 users$experiment_completed <- users$experiment_completed %>% as.logical()
 users$failed_attention_checks <- users$failed_attention_checks %>% as.logical()
 users$start_time <- users$start_time %>% as.POSIXct()
@@ -95,12 +95,22 @@ final_surveys$attention.check.2 <- final_surveys$attention.check.2 %>% as.intege
 feedback <- survey_dfs$feedback
 names(feedback)[1] <- "text"
 
+#### Check for Dropped Users ####
+
+dropped_ids <- users %>% filter(experiment_completed == F) %>% select(mturk_id) %>% unlist()
+users %>% filter(mturk_id %in% c(dropped_ids))
+demographics %>% filter(mturk_id %in% dropped_ids)
+sections %>% filter(mturk_id %in% dropped_ids)
+moves %>% filter(mturk_id %in% dropped_ids)
+final_surveys %>% filter(mturk_id %in% dropped_ids)
+feedback %>% filter(mturk_id %in% dropped_ids)
+
 #### Performance Results ####
 
 sections %>% filter(section=="practice") %>% select(successes)
 sections %>% filter(section=="testing") %>% select(successes)
 
-#### Final Survey Means ####
+#### Final Survey Stats ####
 
 final_surveys %>% select(starts_with("sat.outcome")) %>% unlist() %>% summary()
 final_surveys %>% select(starts_with("sat.agent")) %>% unlist() %>% summary()

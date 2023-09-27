@@ -163,7 +163,28 @@ function onDrop(source, target) {
         move_num++
         explained_move = false
         removeRedSquares()
-        if (!completed) setTimeout(makePuzzleMove, 250)
+        if (completed) {
+          let last_message = chat_display.find("p").last()
+          let qualifier = ""
+          if (section == "testing") {
+            if (num_mistakes > 1) {
+              qualifier = " with mistakes"
+            } else if (num_mistakes == 1) {
+              qualifier = " with a mistake"
+            } else {
+              qualifier = " successfully"
+            }
+          }
+          last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed` + qualifier + `.</p>`)
+          let t = chat_display.find(".time").last()
+          t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+          scrollChat()
+          
+          puzzle_num++
+          setTimeout(nextPuzzle, 500)
+        } else {
+          setTimeout(makePuzzleMove, 250)
+        }
       }
     },
     error: function(err) {
@@ -194,33 +215,6 @@ function onMouseoverSquare (square, piece) {
 
 function onMouseoutSquare (square, piece) {
   removeGreySquares()
-}
-
-// update the board position after the piece snap
-// for castling, en passant, pawn promotion
-function onSnapEnd() {
-  // board.position(game.fen())
-
-  if (completed) {
-    let last_message = chat_display.find("p").last()
-    let qualifier = ""
-    if (section == "testing") {
-      if (num_mistakes > 1) {
-        qualifier = " with mistakes"
-      } else if (num_mistakes == 1) {
-        qualifier = " with a mistake"
-      } else {
-        qualifier = " successfully"
-      }
-    }
-    last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed` + qualifier + `.</p>`)
-    let t = chat_display.find(".time").last()
-    t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
-    scrollChat()
-    
-    puzzle_num++
-    setTimeout(nextPuzzle, 500)
-  }
 }
 
 function nextSection() {
@@ -276,8 +270,7 @@ function nextPuzzle() {
     onDragStart: onDragStart,
     onDrop: onDrop,
     onMouseoutSquare: onMouseoutSquare,
-    onMouseoverSquare: onMouseoverSquare,
-    onSnapEnd: onSnapEnd
+    onMouseoverSquare: onMouseoverSquare
   }
   board = Chessboard("board", config)
   move_start = Date.now()
