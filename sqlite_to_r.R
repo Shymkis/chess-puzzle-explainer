@@ -4,6 +4,7 @@ library(RSQLite)
 library(dplyr)
 library(jsonlite)
 library(ggplot2)
+library(effectsize)
 
 get_table_dfs <- function(db_filepath) {
   con <- dbConnect(drv=RSQLite::SQLite(), dbname=db_filepath)
@@ -67,6 +68,8 @@ users$start_time <- users$start_time %>% as.POSIXct()
 users$end_time <- users$end_time %>% as.POSIXct()
 users$consent <- users$consent %>% as.logical()
 users$protocol <- users$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
+users$study_duration <- users$end_time - users$start_time
+users$bonus_comp <- pmax(users$compensation - 2.5, 0)
 
 #### Obtain and clean survey data frames ####
 
@@ -95,42 +98,119 @@ final_surveys$attention.check.2 <- final_surveys$attention.check.2 %>% as.intege
 feedback <- survey_dfs$feedback
 names(feedback)[1] <- "text"
 
-#### Check for Dropped Users ####
+#### Dropped Users ####
 
 dropped_ids <- users %>% filter(experiment_completed == F) %>% select(mturk_id) %>% unlist()
-users %>% filter(mturk_id %in% c(dropped_ids))
-demographics %>% filter(mturk_id %in% dropped_ids)
-sections %>% filter(mturk_id %in% dropped_ids)
-moves %>% filter(mturk_id %in% dropped_ids)
-final_surveys %>% filter(mturk_id %in% dropped_ids)
-feedback %>% filter(mturk_id %in% dropped_ids)
+users %>% filter(mturk_id %in% c(dropped_ids)) %>% nrow()
+demographics %>% filter(mturk_id %in% dropped_ids) %>% nrow()
+sections %>% filter(mturk_id %in% dropped_ids, section == "practice") %>% nrow()
+sections %>% filter(mturk_id %in% dropped_ids, section == "testing") %>% nrow()
+final_surveys %>% filter(mturk_id %in% dropped_ids) %>% select(mturk_id) %>% nrow()
 
-#### Compensation Check ####
+#### Bonus Compensation ####
 
-users %>% select(mturk_id, completion_code, compensation, end_time)
+users %>% 
+  select(mturk_id, completion_code, bonus_comp) %>% 
+  tail(26) %>% 
+  filter(bonus_comp > 0) %>%
+  arrange(mturk_id)
 
-#### Performance Results ####
+#### Protocols ####
 
-sections.results <- function(sect, metric) {
-  sections %>% 
-    inner_join(users, join_by(mturk_id)) %>% 
-    filter(experiment_completed == T, section == sect) %>% 
-    ggplot(aes(x = protocol.y, y = {{metric}})) + geom_boxplot() + ggtitle(sect)
+users %>% select(protocol) %>% table()
+
+#### Demographics ####
+
+demographics$chess.skill %>% table()
+
+sections %>% 
+  filter(section == "testing") %>% 
+  inner_join(demographics, join_by(mturk_id)) %>% 
+  ggplot(aes(x = chess.skill, y = successes)) + 
+  geom_boxplot() + 
+  ylab("successes")
+
+demographics %>% 
+  inner_join(sections, join_by(mturk_id)) %>% 
+  filter(section == "practice") %>% 
+  mutate(add.info.page = start_time - timestamp) %>% 
+  select(add.info.page) %>% unlist() %>% unlist() %>% log10() %>% hist()
+
+#### Performance ####
+
+sections.analyze <- function(sect, metric) {
+  struggled <- sections %>% filter(section == "practice", successes > 6) %>% select(mturk_id) %>% unlist()
+  metric.df <- sections %>% 
+    filter(mturk_id %in% struggled, section == sect) %>% 
+    inner_join(users, join_by(mturk_id))
+  
+  protocol.data <- metric.df[, "protocol.y"]
+  metric.data <- metric.df[, metric]
+  
+  aov(metric.data ~ protocol.data) %>% summary() %>% print()
+  aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% print()
+  aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% plot()
+  title(main = paste(sect, metric), line = 1)
+  
+  ggplot(mapping = aes(x = protocol.data, y = metric.data)) + 
+    geom_boxplot() + 
+    ggtitle(sect) +
+    ylab(metric)
 }
-sections.results("practice", successes)
-sections.results("practice", duration)
-sections.results("testing", successes)
-sections.results("testing", duration)
+sections.analyze("practice", "successes")
+sections.analyze("practice", "num_puzzles")
+sections.analyze("practice", "duration")
+sections.analyze("testing", "successes")
+sections.analyze("testing", "num_puzzles")
+sections.analyze("testing", "duration")
 
-#### Final Survey Stats ####
+moves.stats <- moves %>% 
+  group_by(section_id, puzzle_id, move_num, mistake) %>% 
+  summarize(attempts = n(), time = sum(duration)) %>% 
+  group_by(section_id, puzzle_id, move_num) %>% 
+  summarize(correct = !any(mistake), attempts = sum(attempts), time = sum(time)) 
 
-final_surveys.boxplot <- function(metric) {
-  final_surveys %>% 
-    inner_join(users, join_by(mturk_id)) %>% 
-    filter(experiment_completed == T) %>% 
+first_moves <- moves.stats %>% 
+  filter(move_num == 0) %>% 
+  group_by(section_id, puzzle_id) %>% 
+  summarize(first_move.correct = all(correct))
+
+puzzles.stats <- moves.stats %>% 
+  group_by(section_id, puzzle_id) %>% 
+  summarize(accuracy = sum(correct)/2, attempts = sum(attempts), time = sum(time), score = 100000*accuracy/(attempts*time)) %>% 
+  ungroup() %>% 
+  inner_join(sections, join_by(section_id == id)) %>% 
+  inner_join(users, join_by(mturk_id), suffix = c(".section", ".user")) %>% 
+  select(mturk_id, section_id, section, puzzle_id, accuracy, attempts, time, score, protocol.user) %>% 
+  left_join(first_moves, join_by(section_id, puzzle_id))
+
+#### Final Surveys ####
+
+final_surveys %>% 
+  inner_join(users, join_by(mturk_id)) %>% 
+  filter(protocol == "actionable") %>% 
+  select(exp.power.3) %>% unlist() %>% 
+  hist(seq(.5,5.5))
+
+final_surveys.analyze <- function(metric) {
+  metric.data <- final_surveys %>% 
     mutate(metric = select(., starts_with(metric)) %>% rowSums()/3) %>% 
-    ggplot(aes(x = protocol, y = metric)) + geom_boxplot() + ylab(metric)
+    inner_join(users, join_by(mturk_id))
+  
+  aov(metric ~ protocol, data = metric.data) %>% summary() %>% print()
+  aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% print()
+  aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% plot()
+  title(main = metric, line = 1)
+
+  metric.data %>% ggplot(aes(x = protocol, y = metric)) +
+    geom_boxplot() +
+    ylab(metric)
 }
-final_surveys.boxplot("sat.outcome")
-final_surveys.boxplot("sat.agent")
-final_surveys.boxplot("exp.power")
+
+final_surveys.analyze("sat.outcome")
+final_surveys.analyze("sat.agent")
+final_surveys.analyze("exp.power")
+
+#### Feedback ####
+
+feedback %>% select(text, mturk_id) %>% print(n=200)
