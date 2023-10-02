@@ -521,4 +521,4 @@ def thanks():
     return render_template("thanks.html", completion_code=session["completion_code"], base_comp=session["base_comp"], bonus_comp=session["bonus_comp"])
 
 if __name__ == "__main__":
-    # app.run(debug=True)
+    app.run(debug=True)
