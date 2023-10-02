@@ -43,6 +43,12 @@ body {
     flex-direction: column;
     overflow: hidden;
 }
+.check {
+    color: #0a0;
+}
+.cross {
+    color: #f00;
+}
 .msg-header {
     background-color: #efefef;
     border: 1px solid #ccc;

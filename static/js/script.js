@@ -12,7 +12,7 @@ function removeGreySquares() {
   $('#board .square-55d63').css('background', '')
 }
 
-function removeRedSquares() {
+function removeGreenSquares() {
   $('#board .square-55d63').css('box-shadow', '')
 }
 
@@ -23,9 +23,9 @@ function greySquare(square) {
   square_display.css('background', background)
 }
 
-function redSquare(square) {
+function greenSquare(square) {
   let square_display = $('#board .square-' + square)
-  square_display.css('box-shadow', 'inset 0 0 3px 3px' + squareRed)
+  square_display.css('box-shadow', 'inset 0 0 3px 3px' + squareGreen)
 }
 
 function makePuzzleMove() {
@@ -46,34 +46,93 @@ function typing() {
   cur_message.text(dots)
 }
 
-function explain(mistake, reason) {
+function give_explanation(reason) {
+  if (protocol != "none") {
+    // create message space
+    dots = "."
+    cur_message.after("<p>" + dots + "</p>")
+    cur_message = cur_message.next()
+    scrollChat()
+    // create message
+    let message_content = protocol == "none" ? "" : ("<b>My explanation:</b> " + reason)
+    // typing animation
+    let typing_interval = setInterval(typing, 200)
+    setTimeout(function() {
+      // stop typing
+      clearInterval(typing_interval)
+      // display message
+      cur_message.html(message_content).css({"background-color": "#00a", "color": "#efefef"}).addClass("explanation")
+
+      $(".board-container").css("filter","blur(3px)")
+      $(".received-msg:not(:last)").css("filter","blur(3px)")
+      $(".your-move:not(:last)").css("filter","")
+      $(".recommendation:not(:last)").css("filter","blur(3px)")
+      $(".explanation:not(:last)").css("filter","blur(3px)")
+      setTimeout(function() {
+        $(".board-container").css("filter","")
+        $(".received-msg:not(:last)").css("filter","")
+        $(".your-move:not(:last)").css("filter","")
+        $(".recommendation:not(:last)").css("filter","")
+        $(".explanation:not(:last)").css("filter","")
+      }, 2000)
+      scrollChat()
+    }, message_content.length*10)
+  }
+}
+
+function give_recommendation(c_source, c_target, mistake, reason) {
+  if (mistake && section == "practice") {
+    // create message space
+    dots = "."
+    cur_message.after("<p>" + dots + "</p>")
+    cur_message = cur_message.next()
+    scrollChat()
+    // create message
+    let message_content = "<b>My recommendation:</b> " + piece_names[game.get(c_source).type] + " to " + c_target
+    // typing animation
+    let typing_interval = setInterval(typing, 200)
+    setTimeout(function() {
+      // stop typing
+      clearInterval(typing_interval)
+      // display message
+      cur_message.html(message_content).addClass("recommendation")
+      scrollChat()
+      // show move
+      if (section == "practice" && mistake) {
+        greenSquare(c_source)
+        greenSquare(c_target)
+      }
+      give_explanation(reason)
+    }, message_content.length*10)
+  } else {
+    give_explanation(reason)
+  }
+}
+
+function explain(h_source, h_target, mistake, reason) {
+  explained_move = true
+  let t = chat_display.find(".time").last()
   // create message space
-  let last_message = chat_display.find("p").last()
   dots = "."
-  last_message.after("<p>" + dots + "</p>")
-  cur_message = last_message.next()
+  t.before("<p>" + dots + "</p>")
+  cur_message = t.prev()
   scrollChat()
-
+  // create message
+  let c_source = moves[move_num].slice(0,2)
+  let c_target = moves[move_num].slice(-2)
+  let h_piece = mistake ? piece_names[game.get(h_source).type] : piece_names[game.get(h_target).type]
+  let mark = mistake ? " <span class='cross'>&#10006</span>" : " <span class='check'>&#10004</span>"
+  let message_content = "<b>Your move:</b> " + h_piece + " to " + h_target + mark
   // typing animation
-  typing_interval = setInterval(typing, 200)
-
+  let typing_interval = setInterval(typing, 200)
   setTimeout(function() {
     // stop typing
     clearInterval(typing_interval)
-    
-    // show explanation
-    cur_message.text(reason)
-    let t = chat_display.find(".time").last()
-    t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+    // display message
+    cur_message.html(message_content).addClass("your-move")
     scrollChat()
-
-    // show move
-    if (section == "practice" && mistake) {
-      redSquare(moves[move_num].slice(0,2))
-      redSquare(moves[move_num].slice(-2))
-    }
-  }, reason.length*6)
-  explained_move = true
+    give_recommendation(c_source, c_target, mistake, reason)
+  }, message_content.length*5)
 }
 
 function onDragStart(source, piece, position, orientation) {
@@ -150,34 +209,26 @@ function onDrop(source, target) {
     contentType: "application/json",
     data: move_data,
     success: function(data) {
-      // pulse previous explanation for repeated mistakes
-      if (explained_move && mistake) chat_display.find("p").last().fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100)
+      // undo wrong move
+      if (mistake) game.undo()
+      // pulse previous recommendation for repeated mistakes
+      if (explained_move && mistake && section == "practice") chat_display.find(".recommendation").last().fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100)
       // explain move
-      if ((!explained_move || (section == "testing" && !mistake)) && data !== null) explain(mistake, data["reason"])
+      if ((!explained_move || section == "testing") && data !== null) explain(source, target, mistake, data["reason"])
+      // continue the puzzle accordingly
       if (mistake) {
-        // undo wrong move
-        game.undo()
+        // start new move timer on wrong move
         move_start = Date.now()
       } else {
         // make next puzzle move after correct move
         move_num++
         explained_move = false
-        removeRedSquares()
+        removeGreenSquares()
         if (completed) {
           let last_message = chat_display.find("p").last()
-          let qualifier = ""
-          if (section == "testing") {
-            if (num_mistakes > 1) {
-              qualifier = " with mistakes"
-            } else if (num_mistakes == 1) {
-              qualifier = " with a mistake"
-            } else {
-              qualifier = " successfully"
-            }
-          }
-          last_message.after(`<p>Puzzle ` + (puzzle_num + 1) + ` completed` + qualifier + `.</p>`)
+          last_message.after("Puzzle " + (puzzle_num + 1) + " completed")
           let t = chat_display.find(".time").last()
-          t.text(new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1))
+          t.html("<hr>")
           scrollChat()
           
           puzzle_num++
@@ -257,8 +308,8 @@ function nextPuzzle() {
   
   chat_display.append(`
     <div class="received-msg">
-      <p>Puzzle ` + (puzzle_num + 1) + ` of ` + puzzles.length + `.</p>
-      <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + ` | Puzzle ` + (puzzle_num + 1) + `</span>
+      Puzzle ` + (puzzle_num + 1) + ` of ` + puzzles.length + `
+      <span class="time"></span>
     </div>
   `)
   scrollChat()
@@ -284,7 +335,8 @@ let time_limit = 60*10
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 // board vars
-let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', squareRed = '#f00'
+let piece_names = {b: "Bishop", k: "King", n: "Knight", p: "Pawn", q: "Queen", r: "Rook"}
+let whiteSquareGrey = '#a9a9a9', blackSquareGrey = '#696969', squareGreen = '#0a0'
 // section vars
 let puzzle_num = 0, successes = 0, num_moves = 0
 // chat vars
@@ -302,16 +354,16 @@ $.ajax({
       timer_display.parent().prepend("Testing time remaining: ")
       chat_display.append(`
         <div class="received-msg">
-          <p>Test your skills on these new puzzles without any explanations from me. If you make a wrong move, keep trying until you find the right one. <b>You will be rewarded for the number of puzzles you complete without any mistakes.</b></p>
-          <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+          <p>Test your skills on these new puzzles without any help from me. Keep trying until you find the right move. <b>Your reward increases with the number of puzzles completed and decreases with the number of mistakes made.</b></p>
+          <span class="time"><hr></span>
         </div>
       `)
     } else {
       timer_display.parent().prepend("Practice time remaining: ")
       chat_display.append(`
         <div class="received-msg">
-          <p>Hello! I am your AI teammate. I'm here to assist you with these chess puzzles.</p>
-          <span class="time">` + new Date().toLocaleTimeString([], { timeStyle: "short" }) + `</span>
+          <p>Hello! I am your AI agent. I'm here to assist you with these puzzles.</p>
+          <span class="time"><hr></span>
         </div>
       `)
     }

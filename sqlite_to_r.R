@@ -1,5 +1,7 @@
 rm(list=ls())
 
+setwd("C:/Users/jshym/OneDrive/Documents/School/TU/Graduate/Research/Not All Explanatations Are Created Equal/chess_puzzle_explainer/instance")
+
 library(RSQLite)
 library(dplyr)
 library(jsonlite)
@@ -36,6 +38,7 @@ get_survey_dfs <- function(raw_surveys) {
 }
 
 start_date = as.POSIXct("2023-09-25")
+restart_date = as.POSIXct("2023-10-01")
 
 #### Obtain and clean SQLite table data frames ####
 
@@ -44,7 +47,7 @@ table_dfs <- get_table_dfs("application.db")
 explanations <- table_dfs$explanation
 explanations$protocol <- explanations$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 
-moves <- table_dfs$move %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
+moves <- table_dfs$move %>% filter(start_time > restart_date, mturk_id %>% startsWith("A"))
 moves$start_time <- moves$start_time %>% as.POSIXct()
 moves$end_time <- moves$end_time %>% as.POSIXct()
 moves$mistake <- moves$mistake %>% as.logical()
@@ -52,16 +55,16 @@ moves$mistake <- moves$mistake %>% as.logical()
 puzzles <- table_dfs$puzzle
 puzzles$theme <- puzzles$theme %>% as.factor()
 
-sections <- table_dfs$section %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
+sections <- table_dfs$section %>% filter(start_time > restart_date, mturk_id %>% startsWith("A"))
 sections$section <- sections$section %>% as.factor()
 sections$protocol <- sections$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 sections$start_time <- sections$start_time %>% as.POSIXct()
 sections$end_time <- sections$end_time %>% as.POSIXct()
 
-surveys <- table_dfs$survey %>% filter(timestamp > start_date, mturk_id %>% startsWith("A"))
+surveys <- table_dfs$survey %>% filter(timestamp > restart_date, mturk_id %>% startsWith("A"))
 surveys$timestamp <- surveys$timestamp %>% as.POSIXct()
 
-users <- table_dfs$user %>% filter(start_time > start_date, mturk_id %>% startsWith("A"))
+users <- table_dfs$user %>% filter(start_time > restart_date, mturk_id %>% startsWith("A"))
 users$experiment_completed <- users$experiment_completed %>% as.logical()
 users$failed_attention_checks <- users$failed_attention_checks %>% as.logical()
 users$start_time <- users$start_time %>% as.POSIXct()
@@ -170,19 +173,13 @@ moves.stats <- moves %>%
   group_by(section_id, puzzle_id, move_num) %>% 
   summarize(correct = !any(mistake), attempts = sum(attempts), time = sum(time)) 
 
-first_moves <- moves.stats %>% 
-  filter(move_num == 0) %>% 
-  group_by(section_id, puzzle_id) %>% 
-  summarize(first_move.correct = all(correct))
-
 puzzles.stats <- moves.stats %>% 
   group_by(section_id, puzzle_id) %>% 
-  summarize(accuracy = sum(correct)/2, attempts = sum(attempts), time = sum(time), score = 100000*accuracy/(attempts*time)) %>% 
+  summarize(num_correct = sum(correct), attempts = sum(attempts), mistakes = attempts - num_correct, time = sum(time)) %>% 
   ungroup() %>% 
   inner_join(sections, join_by(section_id == id)) %>% 
   inner_join(users, join_by(mturk_id), suffix = c(".section", ".user")) %>% 
-  select(mturk_id, section_id, section, puzzle_id, accuracy, attempts, time, score, protocol.user) %>% 
-  left_join(first_moves, join_by(section_id, puzzle_id))
+  select(mturk_id, section_id, section, puzzle_id, num_correct, attempts, mistakes, time, protocol.user)
 
 #### Final Surveys ####
 
@@ -214,3 +211,4 @@ final_surveys.analyze("exp.power")
 #### Feedback ####
 
 feedback %>% select(text, mturk_id) %>% print(n=200)
+

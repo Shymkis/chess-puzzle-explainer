@@ -235,7 +235,7 @@ def consent_submit():
             db.session.commit()
             
             print("Protocol: " + str(session["protocol"]))
-                
+
             return redirect(url_for("demographics_survey"))
         else:
             print("Consent not given")
@@ -287,16 +287,16 @@ def demographics_survey_submit():
         db.session.add(survey)
         db.session.commit()
         
-        return redirect(url_for("additional_info"))
+        return redirect(url_for("key_info"))
 
-@app.route("/additional_info/")
+@app.route("/key_info/")
 @login_required
-def additional_info():
+def key_info():
     if not current_user.is_authenticated or not session.get("consent") == True:
         print("User not authenticated or consented.")
         return redirect(url_for("login"))
 
-    return render_template("additional_info.html")
+    return render_template("key_info.html")
 
 @app.route("/practice/")
 @login_required
@@ -308,11 +308,11 @@ def practice():
     if session.get("practice_page_loaded"):
         print("User is reloading practice page.")
         return redirect(url_for("clear_session_and_logout"))
-    
+
     session["practice_page_loaded"] = True
-    
+
     session["section"] = "practice"
-    return render_template("chess.html", section=session["section"])
+    return render_template("chess.html", section=session["section"], protocol=session["protocol"])
 
 @app.route("/testing/")
 @login_required
@@ -324,12 +324,12 @@ def testing():
     if session.get("testing_page_loaded"):
         print("User is reloading testing page.")
         return redirect(url_for("clear_session_and_logout"))
-    
+
     session["testing_page_loaded"] = True
 
     session["section"] = "testing"
     session["protocol"] = "none"
-    return render_template("chess.html", section=session["section"])
+    return render_template("chess.html", section=session["section"], protocol=session["protocol"])
 
 @app.route("/get_puzzles/", methods=["POST"])
 def get_puzzles():
@@ -398,7 +398,7 @@ def final_survey():
         return redirect(url_for("clear_session_and_logout"))
     else:
         session["final_survey_loaded"] = True
-        return render_template("final_survey.html")
+        return render_template("final_survey.html", protocol=User.query.filter_by(mturk_id=session["mturk_id"]).first().protocol)
 
 @app.route("/final_survey/submit/", methods=["POST"])
 def final_survey_submit():
@@ -425,9 +425,9 @@ def final_survey_submit():
         final_survey["attention-check-1"] = request.form.get("q41")
         final_survey["attention-check-2"] = request.form.get("q42")
         
-        if final_survey["attention-check-1"] != "5":
+        if final_survey["attention-check-1"] != "7":
             session["failed_attention_checks"] += 1
-        if final_survey["attention-check-2"] not in ["1", "2"]:
+        if final_survey["attention-check-2"] not in ["1", "2", "3"]:
             session["failed_attention_checks"] += 1
         print("Failed attention checks: " + str(session["failed_attention_checks"]))
         
@@ -445,6 +445,26 @@ def final_survey_submit():
         
         return redirect(url_for("post_survey"))
 
+def calculate_bonus_comp(mturker):
+    test_section = Section.query.filter_by(mturk_id=mturker, section="testing").first()
+    if test_section:
+        user_moves = Move.query.filter_by(section_id=test_section.id).all()
+        if user_moves:
+            correct_moves = {}
+            bonuses = {}
+            for move in user_moves:
+                if move.puzzle_id not in correct_moves.keys():
+                    correct_moves[move.puzzle_id] = 0
+                if move.puzzle_id not in bonuses.keys():
+                    bonuses[move.puzzle_id] = .2
+                correct_moves[move.puzzle_id] += not move.mistake
+                bonuses[move.puzzle_id] = max(bonuses[move.puzzle_id] - move.mistake*.04, 0)
+            for k in correct_moves:
+                if correct_moves[k] < 2:
+                    bonuses[k] = 0.0
+            return sum(bonuses.values())
+    return 0.0
+
 @app.route("/post_survey/", methods=["GET", "POST"])
 def post_survey():
     if not current_user.is_authenticated or not session.get("consent") or not session.get("experiment_completed"):
@@ -454,10 +474,9 @@ def post_survey():
 
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         if not user.experiment_completed:
-            test_section = Section.query.filter_by(mturk_id=session["mturk_id"], section="testing").first()
             base_comp = 2.5
             session["base_comp"] = base_comp
-            bonus_comp = round(.2*test_section.successes, 2)
+            bonus_comp = calculate_bonus_comp(session["mturk_id"])
             session["bonus_comp"] = bonus_comp
             compensation = base_comp + bonus_comp
             session["compensation"] = compensation
