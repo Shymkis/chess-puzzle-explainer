@@ -142,18 +142,17 @@ demographics %>%
 #### Performance ####
 
 sections.analyze <- function(sect, metric) {
-  struggled <- sections %>% filter(section == "practice", successes > 6) %>% select(mturk_id) %>% unlist()
   metric.df <- sections %>% 
-    filter(mturk_id %in% struggled, section == sect) %>% 
+    filter(section == sect) %>% 
     inner_join(users, join_by(mturk_id))
   
   protocol.data <- metric.df[, "protocol.y"]
   metric.data <- metric.df[, metric]
   
-  aov(metric.data ~ protocol.data) %>% summary() %>% print()
-  aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% print()
-  aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% plot()
-  title(main = paste(sect, metric), line = 1)
+  # aov(metric.data ~ protocol.data) %>% summary() %>% print()
+  # aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% print()
+  # aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% plot()
+  # title(main = paste(sect, metric), line = 1)
   
   ggplot(mapping = aes(x = protocol.data, y = metric.data)) + 
     geom_boxplot() + 
@@ -171,7 +170,7 @@ moves.stats <- moves %>%
   group_by(section_id, puzzle_id, move_num, mistake) %>% 
   summarize(attempts = n(), time = sum(duration)) %>% 
   group_by(section_id, puzzle_id, move_num) %>% 
-  summarize(correct = !any(mistake), attempts = sum(attempts), time = sum(time)) 
+  summarize(correct = sum(!mistake), attempts = sum(attempts), time = sum(time)) 
 
 puzzles.stats <- moves.stats %>% 
   group_by(section_id, puzzle_id) %>% 
@@ -185,19 +184,19 @@ puzzles.stats <- moves.stats %>%
 
 final_surveys %>% 
   inner_join(users, join_by(mturk_id)) %>% 
-  filter(protocol == "actionable") %>% 
-  select(exp.power.3) %>% unlist() %>% 
-  hist(seq(.5,5.5))
+  filter(protocol == "none") %>% 
+  select(sat.agent.3) %>% unlist() %>% 
+  hist(seq(.5,7.5))
 
 final_surveys.analyze <- function(metric) {
   metric.data <- final_surveys %>% 
     mutate(metric = select(., starts_with(metric)) %>% rowSums()/3) %>% 
     inner_join(users, join_by(mturk_id))
   
-  aov(metric ~ protocol, data = metric.data) %>% summary() %>% print()
-  aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% print()
-  aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% plot()
-  title(main = metric, line = 1)
+  # aov(metric ~ protocol, data = metric.data) %>% summary() %>% print()
+  # aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% print()
+  # aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% plot()
+  # title(main = metric, line = 1)
 
   metric.data %>% ggplot(aes(x = protocol, y = metric)) +
     geom_boxplot() +

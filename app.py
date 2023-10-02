@@ -228,7 +228,8 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            session["protocol"] = choice(PROTOCOLS)
+            # session["protocol"] = choice(PROTOCOLS)
+            session["protocol"] = "placebic"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -419,9 +420,9 @@ def final_survey_submit():
         final_survey["sat-agent-1"] = request.form.get("q21")
         final_survey["sat-agent-2"] = request.form.get("q22")
         final_survey["sat-agent-3"] = request.form.get("q23")
-        final_survey["exp-power-1"] = request.form.get("q31")
-        final_survey["exp-power-2"] = request.form.get("q32")
-        final_survey["exp-power-3"] = request.form.get("q33")
+        final_survey["exp-power-1"] = request.form.get("q31") if request.form.get("q31") else "0"
+        final_survey["exp-power-2"] = request.form.get("q32") if request.form.get("q32") else "0"
+        final_survey["exp-power-3"] = request.form.get("q33") if request.form.get("q33") else "0"
         final_survey["attention-check-1"] = request.form.get("q41")
         final_survey["attention-check-2"] = request.form.get("q42")
         
@@ -520,4 +521,4 @@ def thanks():
     return render_template("thanks.html", completion_code=session["completion_code"], base_comp=session["base_comp"], bonus_comp=session["bonus_comp"])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
