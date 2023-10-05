@@ -110,117 +110,80 @@
         <h1>Final User Survey</h1>
         <p>Please carefully and thoughtfully complete all of the following questions.<br><br><b>You will NOT be
                 penalized for answering honestly; please answer truthfully for the integrity of our data.</b></p>
-                <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
-
-            <!-- Question Satisfaction Agent/Explanations 2 -->
+        <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
+            
+        <div style="background-color:#e2e2f5;">
+            <h2>Test preparedness</h2>
+            <!-- Question Satisfaction Outcome 1 -->
+            
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q22">I enjoyed the AI agent better in the practice section than in the test section.</label>
+                    <label class="question-label" for="q11">The practice section as a whole prepared me well for the test section.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q22" value="1">
+                            <input type="radio" name="q11" value="1">
                         </div>
                         <div class="options">
                             <label class="option-label">Disagree</label>
-                            <input type="radio" name="q22" value="2">
+                            <input type="radio" name="q11" value="2">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q22" value="3">
+                            <input type="radio" name="q11" value="3">
                         </div>
                         <div class="options">
                             <label class="option-label">Neutral</label>
-                            <input type="radio" name="q22" value="4">
+                            <input type="radio" name="q11" value="4">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q22" value="5">
+                            <input type="radio" name="q11" value="5">
                         </div>
                         <div class="options">
                             <label class="option-label">Agree</label>
-                            <input type="radio" name="q22" value="6">
+                            <input type="radio" name="q11" value="6">
                         </div>
                         <div class="options">
                             <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q22" value="7">
+                            <input type="radio" name="q11" value="7">
                         </div>
                     </div>
                 </div>
             </div>
 
-            {% if protocol != "none" %}
-            <!-- Question Explanatory Power 2 -->
+            <!-- Question Satisfaction Outcome 2 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q32">Without the agent's explanations (blue messages), the puzzles would have been tougher.</label>
+                    <label class="question-label" for="q12">I was well equipped to tackle the test section after completing the practice section.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q32" value="1">
+                            <input type="radio" name="q12" value="1">
                         </div>
                         <div class="options">
                             <label class="option-label">Disagree</label>
-                            <input type="radio" name="q32" value="2">
+                            <input type="radio" name="q12" value="2">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q32" value="3">
+                            <input type="radio" name="q12" value="3">
                         </div>
                         <div class="options">
                             <label class="option-label">Neutral</label>
-                            <input type="radio" name="q32" value="4">
+                            <input type="radio" name="q12" value="4">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q32" value="5">
+                            <input type="radio" name="q12" value="5">
                         </div>
                         <div class="options">
                             <label class="option-label">Agree</label>
-                            <input type="radio" name="q32" value="6">
+                            <input type="radio" name="q12" value="6">
                         </div>
                         <div class="options">
                             <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q32" value="7">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Question Attention Check 1 -->
-            <div class="task-group">
-                <div class="question">
-                    <label class="question-label" for="q41">I am currently participating in a study about
-                        explanations. Please select "strongly agree".</label>
-                    <div class="question-options">
-                        <div class="options">
-                            <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q41" value="1">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Disagree</label>
-                            <input type="radio" name="q41" value="2">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q41" value="3">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Neutral</label>
-                            <input type="radio" name="q41" value="4">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q41" value="5">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Agree</label>
-                            <input type="radio" name="q41" value="6">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q41" value="7">
+                            <input type="radio" name="q12" value="7">
                         </div>
                     </div>
                 </div>
@@ -262,46 +225,47 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            {% if protocol != "none" %}
-            <!-- Question Explanatory Power 1 -->
-            <div class="task-group">
-                <div class="question">
-                    <label class="question-label" for="q31">The agent's explanations (blue messages) helped me understand the puzzles better.</label>
-                    <div class="question-options">
-                        <div class="options">
-                            <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q31" value="1">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Disagree</label>
-                            <input type="radio" name="q31" value="2">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q31" value="3">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Neutral</label>
-                            <input type="radio" name="q31" value="4">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q31" value="5">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Agree</label>
-                            <input type="radio" name="q31" value="6">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q31" value="7">
-                        </div>
+        <!-- Question Attention Check 2 -->
+        <div class="task-group">
+            <div class="question">
+                <label class="question-label" for="q42">I played as the black pieces for every puzzle.</label>
+                <div class="question-options">
+                    <div class="options">
+                        <label class="option-label">Strongly disagree</label>
+                        <input type="radio" name="q42" value="1">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Disagree</label>
+                        <input type="radio" name="q42" value="2">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Somewhat disagree</label>
+                        <input type="radio" name="q42" value="3">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Neutral</label>
+                        <input type="radio" name="q42" value="4">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Somewhat agree</label>
+                        <input type="radio" name="q42" value="5">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Agree</label>
+                        <input type="radio" name="q42" value="6">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Strongly agree</label>
+                        <input type="radio" name="q42" value="7">
                     </div>
                 </div>
             </div>
-            {% endif %}
+        </div>
 
+        <div style="background-color:#f5e2e2;">
+            <h2>Agent satisfaction</h2>
             <!-- Question Satisfaction Agent/Explanations 1 -->
             <div class="task-group">
                 <div class="question">
@@ -339,38 +303,38 @@
                 </div>
             </div>
 
-            <!-- Question Attention Check 2 -->
+            <!-- Question Satisfaction Agent/Explanations 2 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q42">I played as the black pieces for every puzzle.</label>
+                    <label class="question-label" for="q22">I enjoyed the AI agent better in the practice section than in the test section.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q42" value="1">
+                            <input type="radio" name="q22" value="1">
                         </div>
                         <div class="options">
                             <label class="option-label">Disagree</label>
-                            <input type="radio" name="q42" value="2">
+                            <input type="radio" name="q22" value="2">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q42" value="3">
+                            <input type="radio" name="q22" value="3">
                         </div>
                         <div class="options">
                             <label class="option-label">Neutral</label>
-                            <input type="radio" name="q42" value="4">
+                            <input type="radio" name="q22" value="4">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q42" value="5">
+                            <input type="radio" name="q22" value="5">
                         </div>
                         <div class="options">
                             <label class="option-label">Agree</label>
-                            <input type="radio" name="q42" value="6">
+                            <input type="radio" name="q22" value="6">
                         </div>
                         <div class="options">
                             <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q42" value="7">
+                            <input type="radio" name="q22" value="7">
                         </div>
                     </div>
                 </div>
@@ -412,45 +376,123 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Question Satisfaction Outcome 1 -->
+        <!-- Question Attention Check 1 -->
+        <div class="task-group">
+            <div class="question">
+                <label class="question-label" for="q41">I am currently participating in a study about
+                    explanations. Please select "strongly agree".</label>
+                <div class="question-options">
+                    <div class="options">
+                        <label class="option-label">Strongly disagree</label>
+                        <input type="radio" name="q41" value="1">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Disagree</label>
+                        <input type="radio" name="q41" value="2">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Somewhat disagree</label>
+                        <input type="radio" name="q41" value="3">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Neutral</label>
+                        <input type="radio" name="q41" value="4">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Somewhat agree</label>
+                        <input type="radio" name="q41" value="5">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Agree</label>
+                        <input type="radio" name="q41" value="6">
+                    </div>
+                    <div class="options">
+                        <label class="option-label">Strongly agree</label>
+                        <input type="radio" name="q41" value="7">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if protocol != "none" %}
+        <div style="background-color:#e2f5e2;">
+            <h2>Explanation effectiveness</h2>
+            <!-- Question Explanatory Power 1 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q11">The practice section as a whole prepared me well for the test section.</label>
+                    <label class="question-label" for="q31">The agent's explanations (blue messages) helped me understand the puzzles better.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q11" value="1">
+                            <input type="radio" name="q31" value="1">
                         </div>
                         <div class="options">
                             <label class="option-label">Disagree</label>
-                            <input type="radio" name="q11" value="2">
+                            <input type="radio" name="q31" value="2">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q11" value="3">
+                            <input type="radio" name="q31" value="3">
                         </div>
                         <div class="options">
                             <label class="option-label">Neutral</label>
-                            <input type="radio" name="q11" value="4">
+                            <input type="radio" name="q31" value="4">
                         </div>
                         <div class="options">
                             <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q11" value="5">
+                            <input type="radio" name="q31" value="5">
                         </div>
                         <div class="options">
                             <label class="option-label">Agree</label>
-                            <input type="radio" name="q11" value="6">
+                            <input type="radio" name="q31" value="6">
                         </div>
                         <div class="options">
                             <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q11" value="7">
+                            <input type="radio" name="q31" value="7">
                         </div>
                     </div>
                 </div>
             </div>
 
-            {% if protocol != "none" %}
+            <!-- Question Explanatory Power 2 -->
+            <div class="task-group">
+                <div class="question">
+                    <label class="question-label" for="q32">Without the agent's explanations (blue messages), the puzzles would have been tougher.</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree</label>
+                            <input type="radio" name="q32" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree</label>
+                            <input type="radio" name="q32" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Somewhat disagree</label>
+                            <input type="radio" name="q32" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral</label>
+                            <input type="radio" name="q32" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Somewhat agree</label>
+                            <input type="radio" name="q32" value="5">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree</label>
+                            <input type="radio" name="q32" value="6">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly agree</label>
+                            <input type="radio" name="q32" value="7">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Question Explanatory Power 3 -->
             <div class="task-group">
                 <div class="question">
@@ -487,46 +529,10 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
+        </div>
+        {% endif %}
 
-            <!-- Question Satisfaction Outcome 2 -->
-            <div class="task-group">
-                <div class="question">
-                    <label class="question-label" for="q12">I was well equipped to tackle the test section after completing the practice section.</label>
-                    <div class="question-options">
-                        <div class="options">
-                            <label class="option-label">Strongly disagree</label>
-                            <input type="radio" name="q12" value="1">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Disagree</label>
-                            <input type="radio" name="q12" value="2">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat disagree</label>
-                            <input type="radio" name="q12" value="3">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Neutral</label>
-                            <input type="radio" name="q12" value="4">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Somewhat agree</label>
-                            <input type="radio" name="q12" value="5">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Agree</label>
-                            <input type="radio" name="q12" value="6">
-                        </div>
-                        <div class="options">
-                            <label class="option-label">Strongly agree</label>
-                            <input type="radio" name="q12" value="7">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="button">Submit</button>
+        <button type="submit" class="button">Submit</button>
         </form>
     </div>
     <script>

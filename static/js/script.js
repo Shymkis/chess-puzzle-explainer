@@ -161,6 +161,47 @@ function onDragStart(source, piece, position, orientation) {
   }
 }
 
+function logThemeAnswer(button, p_id, user_response) {
+  $(button).siblings().removeClass("highlight")
+  $(button).addClass("highlight")
+
+  answer_data = JSON.stringify({
+    puzzle_id: p_id,
+    user_answer: user_response,
+    correct_answer: theme,
+    correct: user_response == theme
+  })
+  $.ajax({
+    url: "/log_theme_answer/",
+    type: "POST",
+    contentType: "application/json",
+    data: answer_data,
+    success: function(data) {
+      if (p_id == puzzles[puzzle_num]["id"]) {
+        puzzle_num++
+        setTimeout(nextPuzzle, 500)
+      }
+    },
+    error: function(err) {
+      console.log(err)
+    }
+  })
+}
+
+function themeQuestion() {
+  question_html = `
+    <div class="testing-question" style="display: flex">
+      What was the tactic used in this puzzle?
+      <div class="testing-answer" style="display: flex">
+        <button type="button" onclick="logThemeAnswer(this, ` + puzzles[puzzle_num]["id"] + `, 'fork')">Fork</button>
+        <button type="button" onclick="logThemeAnswer(this, ` + puzzles[puzzle_num]["id"] + `, 'pin')">Pin</button>
+      </div>
+    </div>
+  `
+  let last_message = chat_display.find("p").last()
+  last_message.after(question_html)
+}
+
 function onDrop(source, target) {
   removeGreySquares()
 
@@ -231,8 +272,12 @@ function onDrop(source, target) {
           t.html("<hr>")
           scrollChat()
           
-          puzzle_num++
-          setTimeout(nextPuzzle, 500)
+          if (section == "practice") {
+            puzzle_num++
+            setTimeout(nextPuzzle, 500)
+          } else {
+            themeQuestion()
+          }
         } else {
           setTimeout(makePuzzleMove, 250)
         }
@@ -245,7 +290,13 @@ function onDrop(source, target) {
   if (mistake) return "snapback"
 }
 
-function onMouseoverSquare (square, piece) {
+function onMouseoverSquare(square, piece) {
+  // do not show moves if it's not the player's turn
+  if (game.turn() != player_c) return false
+
+  // only show moves for player color
+  if (piece && !piece.startsWith(player_c)) return false
+
   // get list of possible moves for this square
   let legal_moves = game.moves({
     square: square,
@@ -264,7 +315,7 @@ function onMouseoverSquare (square, piece) {
   }
 }
 
-function onMouseoutSquare (square, piece) {
+function onMouseoutSquare(square, piece) {
   removeGreySquares()
 }
 
@@ -298,7 +349,6 @@ function nextPuzzle() {
   fen = puzzles[puzzle_num]["fen"]
   moves = puzzles[puzzle_num]["moves"].split(" ")
   theme = puzzles[puzzle_num]["theme"]
-  rating = puzzles[puzzle_num]["rating"]
   
   game = new Chess(fen)
   player_c = game.turn()

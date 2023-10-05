@@ -104,23 +104,32 @@ names(feedback)[1] <- "text"
 #### Dropped Users ####
 
 dropped_ids <- users %>% filter(experiment_completed == F) %>% select(mturk_id) %>% unlist()
-users %>% filter(mturk_id %in% c(dropped_ids)) %>% nrow()
-demographics %>% filter(mturk_id %in% dropped_ids) %>% nrow()
-sections %>% filter(mturk_id %in% dropped_ids, section == "practice") %>% nrow()
-sections %>% filter(mturk_id %in% dropped_ids, section == "testing") %>% nrow()
-final_surveys %>% filter(mturk_id %in% dropped_ids) %>% select(mturk_id) %>% nrow()
+users %>% filter(mturk_id %in% c(dropped_ids))
+demographics %>% filter(mturk_id %in% dropped_ids)
+sections %>% filter(mturk_id %in% dropped_ids, section == "practice")
+sections %>% filter(mturk_id %in% dropped_ids, section == "testing")
+final_surveys %>% filter(mturk_id %in% dropped_ids) %>% select(mturk_id)
+
+#### Duration ####
+
+users$study_duration %>% as.double() %>% median(na.rm = T)
+(users %>% inner_join(demographics, join_by(mturk_id)) %>% mutate(login.demo.duration = timestamp - start_time) %>% select(login.demo.duration) %>% unlist()/60) %>% median(na.rm = T)
+(demographics %>% inner_join(sections, join_by(mturk_id)) %>% filter(section == "practice") %>% mutate(add.info = start_time - timestamp) %>% select(add.info) %>% unlist()/60) %>% as.double() %>% median(na.rm = T)
+(sections %>% filter(section == "practice") %>% select(duration) %>% unlist()/60000) %>% median(na.rm = T)
+(sections %>% filter(section == "testing") %>% select(duration) %>% unlist()/60000) %>% median(na.rm = T)
+(sections %>% inner_join(final_surveys, join_by(mturk_id)) %>% mutate(final_survey.duration = timestamp - end_time) %>% select(final_survey.duration) %>% unlist()/60) %>% median(na.rm = T)
 
 #### Bonus Compensation ####
 
 users %>% 
   select(mturk_id, completion_code, bonus_comp) %>% 
-  tail(26) %>% 
   filter(bonus_comp > 0) %>%
   arrange(mturk_id)
 
 #### Protocols ####
 
 users %>% select(protocol) %>% table()
+users %>% filter(experiment_completed) %>% select(protocol) %>% table()
 
 #### Demographics ####
 
@@ -133,81 +142,175 @@ sections %>%
   geom_boxplot() + 
   ylab("successes")
 
-demographics %>% 
-  inner_join(sections, join_by(mturk_id)) %>% 
-  filter(section == "practice") %>% 
-  mutate(add.info.page = start_time - timestamp) %>% 
-  select(add.info.page) %>% unlist() %>% unlist() %>% log10() %>% hist()
+#### Feedback ####
 
-#### Performance ####
+feedback %>% select(text, mturk_id) %>% print(n = 200)
 
-sections.analyze <- function(sect, metric) {
+#### Performance: Number of Moves ####
+
+# Correlation between practice and testing
+# Progression during practice or testing
+# T-tests
+# Bonus per puzzle
+# Scale within puzzle
+# New metric: Ask for theme after each puzzle
+# New metric: Ask which pieces a move attacks
+# Cloud Research
+# Don't mix questions, color code factors
+
+# Data wrangling
+puzzle_stats <- moves %>% 
+  inner_join(users, join_by(mturk_id)) %>% 
+  group_by(mturk_id, section_id, puzzle_id, protocol) %>% 
+  summarize(num_moves = n(), num_seconds = sum(duration)/1000, num_correct = sum(!mistake), score = 1/(num_moves*num_seconds)) %>% 
+  inner_join(sections, join_by(mturk_id, section_id == id), suffix = c(".move", ".section")) %>% 
+  rename(protocol.user = protocol.move) %>% 
+  filter(section == "testing") %>% 
+  ungroup()
+# Data filtering
+puzzle_stats %>% select(num_moves) %>% unlist() %>% hist() # Highly skewed data, not great for ANOVA testing
+max_moves <- 12 # Limit "outliers" / tail end of distribution
+puzzle_stats.few_moves <- puzzle_stats %>% filter(num_moves <= max_moves)
+puzzle_stats.few_moves %>% select(num_moves) %>% unlist() %>% hist() # Improved distribution
+nrow(puzzle_stats.few_moves) / nrow(puzzle_stats) # Proportion of original data
+# Box plots
+puzzle_stats %>% ggplot(aes(x = protocol.user, y = num_moves)) + geom_boxplot()
+puzzle_stats.few_moves %>% ggplot(aes(x = protocol.user, y = num_moves)) + geom_boxplot() # Cut out most outliers
+# Tests
+anova.num_moves.all <- aov(num_moves ~ protocol.user, data = puzzle_stats)
+anova.num_moves.few <- aov(num_moves ~ protocol.user, data = puzzle_stats.few_moves)
+tukey.num_moves.all <- TukeyHSD(anova.num_moves.all)
+tukey.num_moves.few <- TukeyHSD(anova.num_moves.few)
+# Stats
+anova.num_moves.all %>% summary()
+anova.num_moves.few %>% summary()
+tukey.num_moves.all
+tukey.num_moves.few
+tukey.num_moves.all %>% plot()
+title(main = "number of moves (all)", line = 1)
+tukey.num_moves.few %>% plot() 
+title(main = "number of moves (few)", line = 1) # Significant difference
+
+#### Performance: Number of Seconds ####
+
+# Data filtering
+puzzle_stats %>% select(num_seconds) %>% unlist() %>% hist() # Highly skewed data, not great for ANOVA testing
+max_seconds <- 120 # Limit "outliers" / tail end of distribution
+puzzle_stats.few_seconds <- puzzle_stats %>% filter(num_seconds <= max_seconds)
+puzzle_stats.few_seconds %>% select(num_seconds) %>% unlist() %>% hist() # Improved distribution
+nrow(puzzle_stats.few_seconds) / nrow(puzzle_stats) # Proportion of original data
+# Box plots
+puzzle_stats %>% ggplot(aes(x = protocol.user, y = num_seconds)) + geom_boxplot()
+puzzle_stats.few_seconds %>% ggplot(aes(x = protocol.user, y = num_seconds)) + geom_boxplot() # Cut out most outliers
+# Tests
+anova.num_seconds.all <- aov(num_seconds ~ protocol.user, data = puzzle_stats)
+anova.num_seconds.few <- aov(num_seconds ~ protocol.user, data = puzzle_stats.few_seconds)
+tukey.num_seconds.all <- TukeyHSD(anova.num_seconds.all)
+tukey.num_seconds.few <- TukeyHSD(anova.num_seconds.few)
+# Stats
+anova.num_seconds.all %>% summary()
+anova.num_seconds.few %>% summary()
+tukey.num_seconds.all
+tukey.num_seconds.few
+tukey.num_seconds.all %>% plot()
+title(main = "number of seconds (all)", line = 1)
+tukey.num_seconds.few %>% plot() 
+title(main = "number of seconds (few)", line = 1) # Significant difference
+
+#### Performance: Score ####
+
+# Data filtering
+puzzle_stats %>% select(score) %>% unlist() %>% hist()
+# Box plots
+puzzle_stats %>% ggplot(aes(x = protocol.user, y = score)) + geom_boxplot()
+# Tests
+anova.score.all <- aov(score ~ protocol.user, data = puzzle_stats)
+tukey.score.all <- TukeyHSD(anova.score.all)
+# Stats
+anova.score.all %>% summary()
+tukey.score.all
+tukey.score.all %>% plot()
+title(main = "score (all)", line = 1)
+
+#### Performance: Bonus Compensation ####
+
+# Data wrangling
+protocol_users <- users %>% filter(!is.na(protocol))
+# Data filtering
+protocol_users %>% select(bonus_comp) %>% unlist() %>% hist() # Many users with no bonus
+protocol_users.bonus <- protocol_users %>% filter(bonus_comp > 0)
+protocol_users.bonus %>% select(bonus_comp) %>% unlist() %>% hist() # Improved distribution
+nrow(protocol_users.bonus) / nrow(protocol_users) # Proportion of original data
+# Box plots
+protocol_users %>% ggplot(aes(x = protocol, y = bonus_comp)) + geom_boxplot()
+protocol_users.bonus %>% ggplot(aes(x = protocol, y = bonus_comp)) + geom_boxplot()
+# Tests
+anova.bonus_comp.all <- aov(bonus_comp ~ protocol, data = protocol_users)
+anova.bonus_comp.few <- aov(bonus_comp ~ protocol, data = protocol_users.bonus)
+tukey.bonus_comp.all <- TukeyHSD(anova.bonus_comp.all)
+tukey.bonus_comp.few <- TukeyHSD(anova.bonus_comp.few)
+# Stats
+anova.bonus_comp.all %>% summary()
+anova.bonus_comp.few %>% summary()
+tukey.bonus_comp.all
+tukey.bonus_comp.few
+tukey.bonus_comp.all %>% plot()
+title(main = "bonus compensation (all)", line = 1)
+tukey.bonus_comp.few %>% plot() 
+title(main = "bonus compensation (few)", line = 1) # Significant difference
+
+#### Performance: Sections ####
+
+analyze.sections <- function(sect, metric) {
   metric.df <- sections %>% 
     filter(section == sect) %>% 
     inner_join(users, join_by(mturk_id))
   
   protocol.data <- metric.df[, "protocol.y"]
   metric.data <- metric.df[, metric]
-  
-  # aov(metric.data ~ protocol.data) %>% summary() %>% print()
-  # aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% print()
-  # aov(metric.data ~ protocol.data) %>% TukeyHSD() %>% plot()
-  # title(main = paste(sect, metric), line = 1)
-  
+  # ANOVA
+  a <- aov(metric.data ~ protocol.data)
+  a %>% summary() %>% print()
+  # Tukey's HSD
+  a.thsd <- a %>% TukeyHSD()
+  a.thsd %>% print()
+  a.thsd %>% plot()
+  title(main = paste(sect, metric), line = 1)
+  # Box plots
   ggplot(mapping = aes(x = protocol.data, y = metric.data)) + 
     geom_boxplot() + 
     ggtitle(sect) +
     ylab(metric)
 }
-sections.analyze("practice", "successes")
-sections.analyze("practice", "num_puzzles")
-sections.analyze("practice", "duration")
-sections.analyze("testing", "successes")
-sections.analyze("testing", "num_puzzles")
-sections.analyze("testing", "duration")
-
-moves.stats <- moves %>% 
-  group_by(section_id, puzzle_id, move_num, mistake) %>% 
-  summarize(attempts = n(), time = sum(duration)) %>% 
-  group_by(section_id, puzzle_id, move_num) %>% 
-  summarize(correct = sum(!mistake), attempts = sum(attempts), time = sum(time)) 
-
-puzzles.stats <- moves.stats %>% 
-  group_by(section_id, puzzle_id) %>% 
-  summarize(num_correct = sum(correct), attempts = sum(attempts), mistakes = attempts - num_correct, time = sum(time)) %>% 
-  ungroup() %>% 
-  inner_join(sections, join_by(section_id == id)) %>% 
-  inner_join(users, join_by(mturk_id), suffix = c(".section", ".user")) %>% 
-  select(mturk_id, section_id, section, puzzle_id, num_correct, attempts, mistakes, time, protocol.user)
+analyze.sections("practice", "successes")
+analyze.sections("practice", "num_puzzles")
+analyze.sections("practice", "duration")
+analyze.sections("testing", "successes")
+analyze.sections("testing", "num_puzzles")
+analyze.sections("testing", "duration")
 
 #### Final Surveys ####
 
-final_surveys %>% 
-  inner_join(users, join_by(mturk_id)) %>% 
-  filter(protocol == "none") %>% 
-  select(sat.agent.3) %>% unlist() %>% 
-  hist(seq(.5,7.5))
-
-final_surveys.analyze <- function(metric) {
+analyze.final_surveys <- function(metric) {
   metric.data <- final_surveys %>% 
-    mutate(metric = select(., starts_with(metric)) %>% rowSums()/3) %>% 
+    mutate(metric = rowSums(select(., starts_with(metric)))/3) %>% 
     inner_join(users, join_by(mturk_id))
-  
-  # aov(metric ~ protocol, data = metric.data) %>% summary() %>% print()
-  # aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% print()
-  # aov(metric ~ protocol, data = metric.data) %>% TukeyHSD() %>% plot()
-  # title(main = metric, line = 1)
-
+  if (metric == "exp.power") {
+    metric.data <- metric.data %>% filter(protocol != "none")
+  }
+  # ANOVA
+  a <- aov(metric ~ protocol, data = metric.data)
+  a %>% summary() %>% print()
+  # Tukey's HSD
+  a.thsd <- a %>% TukeyHSD()
+  a.thsd %>% print()
+  a.thsd %>% plot()
+  title(main = metric, line = 1)
+  # Box plots
   metric.data %>% ggplot(aes(x = protocol, y = metric)) +
     geom_boxplot() +
     ylab(metric)
 }
-
-final_surveys.analyze("sat.outcome")
-final_surveys.analyze("sat.agent")
-final_surveys.analyze("exp.power")
-
-#### Feedback ####
-
-feedback %>% select(text, mturk_id) %>% print(n=200)
-
+analyze.final_surveys("sat.outcome")
+analyze.final_surveys("sat.agent")
+analyze.final_surveys("exp.power")

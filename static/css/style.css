@@ -60,6 +60,14 @@ body {
     float: left;
     margin-left: 1rem;
 }
+.testing-answer button {
+    padding: 5px 10px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+.testing-answer button.highlight {
+    background-color: #ffb;
+}
 .active {
     float: left;
     font-weight: bold;

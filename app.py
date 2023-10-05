@@ -228,8 +228,7 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            # session["protocol"] = choice(PROTOCOLS)
-            session["protocol"] = "placebic"
+            session["protocol"] = choice(PROTOCOLS)
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -241,7 +240,7 @@ def consent_submit():
         else:
             print("Consent not given")
             return clear_session_and_logout()
-        
+
 @app.route("/demographics_survey/", methods=["GET", "POST"])
 def demographics_survey():
     if not current_user.is_authenticated or not session.get("consent"):
@@ -251,7 +250,7 @@ def demographics_survey():
     else:
         session["demo_survey_loaded"] = True
         return render_template("demographics_survey.html")
-    
+
 @app.route("/demographics_survey/submit/", methods=["POST"])
 def demographics_survey_submit():
     if not current_user.is_authenticated or not session.get("consent"):
@@ -379,6 +378,26 @@ def log_move():
     
     db.session.commit()
     return jsonify(exp_dict)
+
+@app.route("/log_theme_answer/", methods=["POST"])
+def log_theme_answer():
+    data = request.get_json()
+    surveys = Survey.query.filter_by(mturk_id=session["mturk_id"], type="theme_question").all()
+    for s in surveys:
+        if s.data["puzzle_id"] == data["puzzle_id"]:
+            s.data = data
+            s.timestamp = datetime.now()
+            db.session.commit()
+            return "Updated successfully"
+    survey = Survey(
+        mturk_id = session["mturk_id"],
+        type = "theme_question",
+        data = data,
+        timestamp = datetime.now()
+    )
+    db.session.add(survey)
+    db.session.commit()
+    return "Added successfully"
 
 @app.route("/log_section/", methods=["POST"])
 def log_section():
